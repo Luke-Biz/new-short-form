@@ -1,0 +1,242 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+  }
+}
+
+/* WebKit autofill: neutralise background + long transition */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+@keyframes bizcap-autofill-detect {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+input:-webkit-autofill,
+select:-webkit-autofill {
+  animation-name: bizcap-autofill-detect;
+  animation-duration: 0.001s;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bizcap-step-panel--leave {
+    animation: bizcap-step-leave 150ms ease-in forwards;
+  }
+
+  .bizcap-step-panel--enter {
+    animation: bizcap-step-enter 200ms ease-out 100ms both;
+  }
+
+  .bizcap-progress-fill {
+    transition: width 0.3s ease;
+  }
+
+  .bizcap-float-label {
+    transition: all 0.15s ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bizcap-step-panel--leave,
+  .bizcap-step-panel--enter {
+    animation: none;
+  }
+
+  .bizcap-progress-fill {
+    transition: none;
+  }
+
+  .bizcap-float-label {
+    transition: none;
+  }
+}
+
+@keyframes bizcap-step-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes bizcap-step-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Floating label follows autofill without JS */
+.bizcap-field input:autofill ~ .bizcap-float-label,
+.bizcap-field input:-webkit-autofill ~ .bizcap-float-label {
+  top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #0c79c1;
+  transform: translateY(0);
+}
+
+.bizcap-field select:autofill ~ .bizcap-float-label,
+.bizcap-field select:-webkit-autofill ~ .bizcap-float-label {
+  top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #0c79c1;
+  transform: translateY(0);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Custom styles for react-phone-input-2 (Bizcap fields)                      */
+/* -------------------------------------------------------------------------- */
+
+/* Inset where dial code / number text begins (matches .form-control padding-left). */
+.bizcap-phone-field {
+  --bizcap-phone-text-inset: 52px;
+}
+
+.bizcap-phone-field .bizcap-react-tel.react-tel-input {
+  position: relative;
+  width: 100%;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+/*
+ * Match FloatingInput: min-h-[56px] pt-8 pb-2 leading-normal — do not fix height: 56px
+ * (that caps the box shorter than native inputs, which grow with line-height + padding).
+ * height:auto !important beats react-phone-input-2’s default height:35px.
+ */
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .form-control {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 56px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  font-size: 16px;
+  line-height: 1.5;
+  padding-top: 32px;
+  padding-bottom: 8px;
+  padding-right: 14px;
+  padding-left: var(--bizcap-phone-text-inset);
+  outline: none;
+}
+
+.bizcap-phone-field .bizcap-phone-field__label {
+  left: var(--bizcap-phone-text-inset);
+}
+
+.bizcap-phone-field.bizcap-phone-field--error
+  .bizcap-react-tel.react-tel-input
+  .form-control {
+  border-color: #dc2626;
+}
+
+.bizcap-phone-field
+  .bizcap-react-tel.react-tel-input
+  .form-control:focus {
+  border-color: var(--brand-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-color) 12%, transparent);
+}
+
+.bizcap-phone-field.bizcap-phone-field--error
+  .bizcap-react-tel.react-tel-input
+  .form-control:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .flag-dropdown {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  background: #fff;
+  border: 1.5px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  border-radius: 9px 0 0 9px;
+}
+
+.bizcap-phone-field
+  .bizcap-react-tel.react-tel-input
+  .flag-dropdown.open {
+  border-radius: 9px 0 0 0;
+}
+
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .selected-flag {
+  width: 48px;
+  padding: 0 0 0 10px;
+  background: transparent;
+}
+
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .selected-flag:hover,
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .selected-flag:focus {
+  background: rgba(12, 121, 193, 0.06);
+}
+
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .selected-flag .flag {
+  transform: scale(1.12);
+  transform-origin: left center;
+}
+
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .country-list {
+  z-index: 20;
+  margin-top: 4px;
+  border-radius: 10px;
+  border: 1.5px solid #d1d5db;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  max-height: 220px;
+  font-family: inherit;
+}
+
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .country-list .country {
+  font-size: 14px;
+}
+
+.bizcap-phone-field .bizcap-react-tel.react-tel-input .country-list .search {
+  border-radius: 8px;
+  margin: 8px;
+  width: calc(100% - 16px);
+}
+
+/* Floating label: autofill (label is sibling of .react-tel-input, not of input) */
+.bizcap-phone-field:has(.react-tel-input input.form-control:-webkit-autofill)
+  .bizcap-float-label,
+.bizcap-phone-field:has(.react-tel-input input.form-control:autofill)
+  .bizcap-float-label {
+  top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #0c79c1;
+  transform: translateY(0);
+}

@@ -1,0 +1,17 @@
+{
+  "library": {
+    "name": "Bizcap Short Form",
+    "description": "Multi-step loan application form",
+    "components": [
+      "src/components/bizcap/*.webflow.tsx"
+    ],
+    "id": "bizcap-short-form"
+  },
+  "telemetry": {
+    "global": {
+      "allowTelemetry": true,
+      "lastPrompted": 1776131579537,
+      "version": "1.13.1"
+    }
+  }
+}
