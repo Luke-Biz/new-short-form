@@ -51,6 +51,10 @@ export function Configurator() {
       setUploadError('Please upload an image file.');
       return;
     }
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadError('File is too large. Please upload an image under 2MB.');
+      return;
+    }
     setUploading(true);
     setUploadError('');
     try {
@@ -214,7 +218,7 @@ export function Configurator() {
                 <span className="text-[13px] text-[#6B7280]">
                   {uploading ? 'Uploading…' : 'Drag & drop or click to upload'}
                 </span>
-                <span className="text-[12px] text-[#9CA3AF]">PNG, JPG, SVG — max 10MB</span>
+                <span className="text-[12px] text-[#9CA3AF]">PNG, JPG, SVG — max 2MB</span>
               </div>
 
               {/* URL input */}
