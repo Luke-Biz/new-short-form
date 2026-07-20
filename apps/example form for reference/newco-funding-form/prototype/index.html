@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bizcap — Funding Eligibility Check</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --blue: #0C79C1;
+        --blue-light: #E8F3FB;
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+        --text-tertiary: #9ca3af;
+        --border: #e5e7eb;
+        --surface: #ffffff;
+        --bg: #f9fafb;
+        --green-bg: #f0fdf4;
+        --green-text: #166534;
+        --red-bg: #fef2f2;
+        --red-text: #991b1b;
+        --radius-sm: 8px;
+        --radius-md: 10px;
+        --radius-lg: 14px;
+      }
+
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--bg);
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 2.5rem 1rem 4rem;
+        line-height: 1.5;
+      }
+
+      .wrap {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      /* Brand */
+      .brand-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.75rem;
+      }
+      .brand-logo {
+        font-size: 17px;
+        font-weight: 500;
+        color: var(--text-primary);
+        letter-spacing: -0.3px;
+      }
+      .brand-logo span {
+        color: var(--blue);
+      }
+
+      /* Trust strip */
+      .trust-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.25rem;
+        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+      }
+      .trust-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .trust-item i {
+        font-size: 13px;
+        color: var(--blue);
+      }
+
+      /* Progress */
+      .progress-wrap {
+        margin-bottom: 1.5rem;
+      }
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 7px;
+      }
+      .progress-step-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+      .progress-count {
+        font-size: 12px;
+        color: var(--text-tertiary);
+      }
+      .progress-track {
+        height: 3px;
+        background: var(--border);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: var(--blue);
+        border-radius: 2px;
+        transition: width 0.4s ease, background 0.4s ease;
+      }
+
+      /* Card */
+      .step-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .step-header {
+        padding: 1.5rem 1.5rem 0;
+      }
+      .step-eyebrow {
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--blue);
+        margin-bottom: 0.3rem;
+      }
+      .step-title {
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.3rem;
+        letter-spacing: -0.2px;
+      }
+      .step-sub {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin-bottom: 1.25rem;
+      }
+      .step-body {
+        padding: 0 1.5rem 1.5rem;
+      }
+
+      /* Fields */
+      .field-group {
+        margin-bottom: 1.125rem;
+      }
+      .field-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.45rem;
+      }
+      .field-hint {
+        display: block;
+        font-size: 12px;
+        color: var(--text-tertiary);
+        margin-bottom: 0.6rem;
+        margin-top: -0.2rem;
+      }
+      .field-opt {
+        font-weight: 400;
+        color: var(--text-tertiary);
+      }
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0 0 1.125rem;
+      }
+
+      /* Revenue binary buttons — large, prominent, two-up */
+      .rev-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .rev-btn {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1rem 1rem 0.875rem;
+        font-family: "DM Sans", sans-serif;
+        cursor: pointer;
+        text-align: center;
+        transition: border-color 0.13s, background 0.13s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .rev-btn:hover {
+        border-color: var(--blue);
+        background: var(--blue-light);
+      }
+
+      .rev-btn.selected-qual {
+        border-color: var(--blue);
+        background: var(--blue-light);
+      }
+
+      .rev-btn.selected-disq {
+        border-color: #e5e7eb;
+        background: var(--red-bg);
+      }
+
+      .rev-btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        margin-bottom: 2px;
+      }
+
+      .rev-btn-icon.qual {
+        background: var(--blue-light);
+        color: var(--blue);
+      }
+      .rev-btn-icon.disq {
+        background: var(--red-bg);
+        color: var(--red-text);
+      }
+
+      .rev-btn-value {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--text-primary);
+        line-height: 1.2;
+      }
+
+      .rev-btn.selected-qual .rev-btn-value {
+        color: var(--blue);
+      }
+      .rev-btn.selected-disq .rev-btn-value {
+        color: var(--red-text);
+      }
+
+      .rev-btn-sub {
+        font-size: 11px;
+        color: var(--text-tertiary);
+        line-height: 1.3;
+      }
+
+      /* Standard sel buttons */
+      .btn-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+      }
+      .btn-grid.cols1 {
+        grid-template-columns: 1fr;
+      }
+      .btn-grid.cols3 {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+
+      .sel-btn {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.65rem 0.85rem;
+        font-size: 13px;
+        font-family: "DM Sans", sans-serif;
+        color: var(--text-primary);
+        cursor: pointer;
+        text-align: left;
+        transition: border-color 0.13s, background 0.13s, color 0.13s;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .sel-btn:hover {
+        border-color: var(--blue);
+        background: var(--blue-light);
+      }
+      .sel-btn.selected {
+        border-color: var(--blue);
+        background: var(--blue-light);
+        color: var(--blue);
+        font-weight: 500;
+      }
+      .sel-btn.selected .sel-icon {
+        color: var(--blue);
+      }
+      .sel-icon {
+        font-size: 15px;
+        color: var(--text-tertiary);
+        flex-shrink: 0;
+      }
+
+      /* $ prefix input */
+      .input-prefix-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .input-prefix {
+        position: absolute;
+        left: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        pointer-events: none;
+      }
+      .input-prefix-wrap .text-input {
+        padding-left: 22px;
+      }
+
+      .text-input {
+        width: 100%;
+        height: 40px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0 12px;
+        font-size: 13px;
+        font-family: "DM Sans", sans-serif;
+        color: var(--text-primary);
+        background: var(--surface);
+        outline: none;
+        transition: border-color 0.13s;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .text-input:focus {
+        border-color: var(--blue);
+      }
+      .text-input::placeholder {
+        color: var(--text-tertiary);
+      }
+
+      /* Neo-bank note */
+      .field-note {
+        display: none;
+        font-size: 12px;
+        color: #92400e;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: var(--radius-sm);
+        padding: 8px 10px;
+        margin-top: 6px;
+        line-height: 1.5;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .field-note.visible {
+        display: flex;
+      }
+      .field-note i {
+        font-size: 14px;
+        color: #d97706;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      /* Reveal animation */
+      .reveal-field {
+        display: none;
+      }
+      .reveal-field.shown {
+        display: block;
+        animation: slideDown 0.22s ease forwards;
+      }
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Input row */
+      .input-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* Buttons */
+      .next-btn {
+        width: 100%;
+        background: var(--blue);
+        color: #fff;
+        border: none;
+        padding: 12px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        font-family: "DM Sans", sans-serif;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+      }
+      .next-btn:hover {
+        background: #0A639E;
+      }
+      .next-btn:active {
+        transform: scale(0.99);
+      }
+      .next-btn:disabled {
+        background: #d1d5db;
+        cursor: not-allowed;
+        color: #9ca3af;
+      }
+      .next-btn i {
+        font-size: 15px;
+      }
+
+      .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 0.75rem;
+        font-size: 13px;
+        color: var(--text-tertiary);
+        cursor: pointer;
+      }
+      .back-link:hover {
+        color: var(--text-secondary);
+      }
+      .consent-text {
+        font-size: 11px;
+        color: var(--text-tertiary);
+        line-height: 1.6;
+        margin-top: 0.875rem;
+      }
+
+      .qual-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: var(--blue-light);
+        color: var(--blue);
+        font-weight: 500;
+        margin-bottom: 0.875rem;
+      }
+      .qual-badge i {
+        font-size: 13px;
+      }
+
+      /* Disq screen */
+      .disq-screen {
+        text-align: center;
+        padding: 2.25rem 1.5rem;
+      }
+      .disq-icon-wrap {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--red-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+      }
+      .disq-icon-wrap i {
+        font-size: 22px;
+        color: var(--red-text);
+      }
+      .disq-title {
+        font-size: 17px;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.45rem;
+      }
+      .disq-msg {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        max-width: 340px;
+        margin: 0 auto 0.75rem;
+      }
+      .disq-alt {
+        font-size: 12px;
+        color: var(--text-tertiary);
+        line-height: 1.6;
+        max-width: 340px;
+        margin: 0 auto 1.5rem;
+      }
+      .restart-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface);
+        color: var(--text-primary);
+        border: 1.5px solid var(--border);
+        padding: 10px 20px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 500;
+        font-family: "DM Sans", sans-serif;
+        cursor: pointer;
+        transition: border-color 0.13s;
+      }
+      .restart-btn:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+      }
+      .restart-btn i {
+        font-size: 14px;
+      }
+
+      /* Success screen */
+      .success-screen {
+        text-align: center;
+        padding: 2.25rem 1.5rem;
+      }
+      .success-icon-wrap {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--green-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+      }
+      .success-icon-wrap i {
+        font-size: 22px;
+        color: var(--green-text);
+      }
+      .success-title {
+        font-size: 17px;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.45rem;
+      }
+      .success-msg {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 1.25rem;
+        max-width: 340px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .success-next {
+        background: var(--green-bg);
+        border: 1px solid #bbf7d0;
+        border-radius: var(--radius-md);
+        padding: 1rem 1.125rem;
+        text-align: left;
+        max-width: 340px;
+        margin: 0 auto;
+      }
+      .success-next-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--green-text);
+        margin-bottom: 0.5rem;
+      }
+      .success-step {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: var(--green-text);
+        margin-bottom: 5px;
+      }
+      .success-step:last-child {
+        margin-bottom: 0;
+      }
+      .success-step i {
+        font-size: 14px;
+      }
+
+      @media (max-width: 480px) {
+        .btn-grid {
+          grid-template-columns: 1fr;
+        }
+        .btn-grid.cols3 {
+          grid-template-columns: 1fr 1fr;
+        }
+        .input-row {
+          grid-template-columns: 1fr;
+        }
+        .trust-row {
+          gap: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="brand-bar">
+        <div class="brand-logo"><span>New</span>Co Capital Group</div>
+      </div>
+
+      <div class="trust-row">
+        <span class="trust-item"
+          ><i class="ti ti-lock"></i> Secure &amp; confidential</span
+        >
+        <span class="trust-item"
+          ><i class="ti ti-clock"></i> 2 min to complete</span
+        >
+        <span class="trust-item"
+          ><i class="ti ti-shield-check"></i> No credit impact</span
+        >
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span class="progress-step-label" id="prog-label"
+            >Step 1 of 3 — Eligibility check</span
+          >
+          <span class="progress-count" id="prog-count">33%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="prog-fill" style="width: 33%"></div>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <!-- ── STEP 1 ── -->
+        <div id="step-1">
+          <div class="step-header">
+            <div class="step-eyebrow">Quick eligibility check</div>
+            <div class="step-title">Let's see if you qualify</div>
+            <div class="step-sub">
+              Takes about 60 seconds, no credit check, no commitment.
+            </div>
+          </div>
+          <div class="step-body">
+            <!-- Revenue — binary gate -->
+            <div class="field-group">
+              <span class="field-label"
+                >What is your average monthly revenue?</span
+              >
+              <div class="rev-grid">
+                <button
+                  class="rev-btn"
+                  id="rev-btn-disq"
+                  onclick="selectRevenue('disq')"
+                >
+                  <div class="rev-btn-icon disq">
+                    <i class="ti ti-trending-down"></i>
+                  </div>
+                  <div class="rev-btn-value">Below $75k</div>
+                  <div class="rev-btn-sub">per month</div>
+                </button>
+
+                <button
+                  class="rev-btn"
+                  id="rev-btn-qual"
+                  onclick="selectRevenue('qual')"
+                >
+                  <div class="rev-btn-icon qual">
+                    <i class="ti ti-trending-up"></i>
+                  </div>
+                  <div class="rev-btn-value">$75k or above</div>
+                  <div class="rev-btn-sub">per month</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Business structure — revealed after revenue -->
+            <div class="reveal-field" id="fg-structure">
+              <div class="divider"></div>
+              <div class="field-group">
+                <span class="field-label">Business structure</span>
+                <div class="btn-grid" id="struct-btns">
+                  <button class="sel-btn" onclick="selectStruct(this,'qual')">
+                    <i class="ti ti-building sel-icon"></i>LLC
+                  </button>
+                  <button class="sel-btn" onclick="selectStruct(this,'qual')">
+                    <i class="ti ti-buildings sel-icon"></i>Corporation (C or S)
+                  </button>
+                  <button class="sel-btn" onclick="selectStruct(this,'disq')">
+                    <i class="ti ti-user sel-icon"></i>Sole proprietor
+                  </button>
+                  <button class="sel-btn" onclick="selectStruct(this,'qual')">
+                    <i class="ti ti-users sel-icon"></i>Partnership / LLP
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bank — revealed after structure -->
+            <div class="reveal-field" id="fg-bank">
+              <div class="divider"></div>
+              <div class="field-group">
+                <span class="field-label">Primary business bank</span>
+                <div class="btn-grid cols1" id="bank-btns">
+                  <button class="sel-btn" onclick="selectBank(this,'qual')">
+                    <i class="ti ti-building-bank sel-icon"></i>Chase / Bank of
+                    America / Wells Fargo
+                  </button>
+                  <button class="sel-btn" onclick="selectBank(this,'qual')">
+                    <i class="ti ti-building-bank sel-icon"></i>US Bank / PNC /
+                    Truist
+                  </button>
+                  <button class="sel-btn" onclick="selectBank(this,'qual')">
+                    <i class="ti ti-building-community sel-icon"></i>Community /
+                    regional bank
+                  </button>
+                  <button class="sel-btn" onclick="selectBank(this,'neo')">
+                    <i class="ti ti-device-mobile sel-icon"></i>Relay / Mercury
+                    / Bluevine
+                  </button>
+                  <button class="sel-btn" onclick="selectBank(this,'neo')">
+                    <i class="ti ti-device-mobile sel-icon"></i>Other neo-bank
+                  </button>
+                </div>
+                <div class="field-note" id="bank-note">
+                  <i class="ti ti-info-circle"></i>
+                  <span
+                    >Neo-bank accounts can sometimes complicate our review. You
+                    may still qualify — our team will assess your file. Opening
+                    a secondary traditional bank account can also strengthen
+                    your application.</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Funding amount — free text, revealed after bank -->
+            <div class="reveal-field" id="fg-amount">
+              <div class="divider"></div>
+              <div class="field-group" style="margin-bottom: 0">
+                <span class="field-label">Desired funding amount</span>
+                <span class="field-hint"
+                  >Enter the approximate amount you're looking to access</span
+                >
+                <div class="input-prefix-wrap">
+                  <span class="input-prefix">$</span>
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    class="text-input"
+                    id="amount-input"
+                    placeholder="e.g. 250,000"
+                    autocomplete="off"
+                    oninput="formatNumber(this); checkStep1();"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="next-btn"
+              id="step1-next"
+              disabled
+              onclick="goStep2()"
+            >
+              Check my eligibility <i class="ti ti-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── STEP 2 ── -->
+        <div id="step-2" style="display: none">
+          <div class="step-header">
+            <div class="qual-badge">
+              <i class="ti ti-circle-check"></i> Looking good — you appear
+              eligible
+            </div>
+            <div class="step-title">Tell us about your business</div>
+            <div class="step-sub">A few details about your company.</div>
+          </div>
+          <div class="step-body">
+            <div class="field-group">
+              <span class="field-label">Business name</span>
+              <input
+                type="text"
+                class="text-input"
+                id="biz-name"
+                placeholder="Acme Inc."
+                oninput="checkStep2()"
+              />
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Industry</span>
+              <div class="btn-grid" id="industry-btns">
+                <button
+                  class="sel-btn"
+                  onclick="selectIndustry(this,'Retail/eCommerce')"
+                >
+                  <i class="ti ti-shopping-cart sel-icon"></i>Retail / eCommerce
+                </button>
+                <button
+                  class="sel-btn"
+                  onclick="selectIndustry(this,'Food & Beverage')"
+                >
+                  <i class="ti ti-tools-kitchen-2 sel-icon"></i>Food &amp;
+                  beverage
+                </button>
+                <button
+                  class="sel-btn"
+                  onclick="selectIndustry(this,'Healthcare')"
+                >
+                  <i class="ti ti-heart-rate-monitor sel-icon"></i>Healthcare
+                </button>
+                <button
+                  class="sel-btn"
+                  onclick="selectIndustry(this,'Construction')"
+                >
+                  <i class="ti ti-crane sel-icon"></i>Construction
+                </button>
+                <button
+                  class="sel-btn"
+                  onclick="selectIndustry(this,'Services')"
+                >
+                  <i class="ti ti-briefcase sel-icon"></i>Professional services
+                </button>
+                <button class="sel-btn" onclick="selectIndustry(this,'Other')">
+                  <i class="ti ti-dots sel-icon"></i>Other
+                </button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Time in business</span>
+              <div class="btn-grid cols3" id="time-btns">
+                <button class="sel-btn" onclick="selectTime(this,'<1yr')">
+                  <i class="ti ti-calendar sel-icon"></i>Under 1 yr
+                </button>
+                <button class="sel-btn" onclick="selectTime(this,'1-2yr')">
+                  <i class="ti ti-calendar sel-icon"></i>1 – 2 yrs
+                </button>
+                <button class="sel-btn" onclick="selectTime(this,'2-5yr')">
+                  <i class="ti ti-calendar sel-icon"></i>2 – 5 yrs
+                </button>
+                <button class="sel-btn" onclick="selectTime(this,'5yr+')">
+                  <i class="ti ti-calendar-stats sel-icon"></i>5+ years
+                </button>
+              </div>
+            </div>
+
+            <div class="field-group" style="margin-bottom: 0">
+              <span class="field-label"
+                >EIN
+                <span class="field-opt"
+                  >(optional — speeds up review)</span
+                ></span
+              >
+              <input
+                type="text"
+                class="text-input"
+                placeholder="XX-XXXXXXX"
+                maxlength="10"
+                oninput="this.value=this.value.replace(/[^0-9-]/g,'')"
+              />
+            </div>
+
+            <button
+              class="next-btn"
+              id="step2-next"
+              disabled
+              onclick="goStep3()"
+            >
+              Continue <i class="ti ti-arrow-right"></i>
+            </button>
+            <span class="back-link" onclick="goBack(1)"
+              ><i class="ti ti-arrow-left" style="font-size: 12px"></i>
+              Back</span
+            >
+          </div>
+        </div>
+
+        <!-- ── STEP 3 ── -->
+        <div id="step-3" style="display: none">
+          <div class="step-header">
+            <div class="qual-badge">
+              <i class="ti ti-circle-check"></i> One last step
+            </div>
+            <div class="step-title">Where should we send your offer?</div>
+            <div class="step-sub">
+              A funding specialist will reach out within 24 hours with your
+              personalized offer.
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="field-group">
+              <div class="input-row">
+                <div>
+                  <span class="field-label">First name</span>
+                  <input
+                    type="text"
+                    class="text-input"
+                    id="fname"
+                    placeholder="Sarah"
+                    oninput="checkStep3()"
+                  />
+                </div>
+                <div>
+                  <span class="field-label"
+                    >Last name <span class="field-opt">(optional)</span></span
+                  >
+                  <input type="text" class="text-input" placeholder="Johnson" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Phone number</span>
+              <input
+                type="tel"
+                class="text-input"
+                id="phone"
+                placeholder="+1 (555) 000-0000"
+                oninput="checkStep3()"
+              />
+            </div>
+
+            <div class="field-group" style="margin-bottom: 0">
+              <span class="field-label">Email address</span>
+              <input
+                type="email"
+                class="text-input"
+                id="email"
+                placeholder="sarah@acmeinc.com"
+                oninput="checkStep3()"
+              />
+            </div>
+
+            <button
+              class="next-btn"
+              id="step3-next"
+              disabled
+              onclick="submitForm()"
+            >
+              Submit my application <i class="ti ti-send"></i>
+            </button>
+            <p class="consent-text">
+              By submitting, you agree to be contacted by Bizcap
+              via phone, email, or SMS regarding your funding application. Msg
+              &amp; data rates may apply. Reply STOP to opt out. We never sell
+              your information.
+            </p>
+            <span class="back-link" onclick="goBack(2)"
+              ><i class="ti ti-arrow-left" style="font-size: 12px"></i>
+              Back</span
+            >
+          </div>
+        </div>
+
+        <!-- ── DISQUALIFICATION ── -->
+        <div id="screen-disq" style="display: none">
+          <div class="disq-screen">
+            <div class="disq-icon-wrap"><i class="ti ti-alert-circle"></i></div>
+            <div class="disq-title" id="disq-title">
+              We can't help right now
+            </div>
+            <div class="disq-msg" id="disq-msg">
+              Based on your answers, your business doesn't currently meet our
+              minimum funding criteria.
+            </div>
+            <div class="disq-alt" id="disq-alt">
+              Our programs are designed for businesses generating $75,000 or
+              more per month. As your business grows, we'd love to hear from
+              you.
+            </div>
+            <button class="restart-btn" onclick="restartForm()">
+              <i class="ti ti-refresh"></i> Start over
+            </button>
+          </div>
+        </div>
+
+        <!-- ── SUCCESS ── -->
+        <div id="screen-success" style="display: none">
+          <div class="success-screen">
+            <div class="success-icon-wrap">
+              <i class="ti ti-circle-check"></i>
+            </div>
+            <div class="success-title">Application received!</div>
+            <div class="success-msg">
+              A Bizcap specialist will review your profile and reach out
+              within <strong>24 business hours</strong> with a personalized
+              offer tailored to your needs.
+            </div>
+            <div class="success-next">
+              <div class="success-next-label">What happens next</div>
+              <div class="success-step">
+                <i class="ti ti-mail"></i> Confirmation email on its way
+              </div>
+              <div class="success-step">
+                <i class="ti ti-phone-call"></i> Specialist call within 24 hours
+              </div>
+              <div class="success-step">
+                <i class="ti ti-file-dollar"></i> Personalized offer prepared
+                for you
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /step-card -->
+    </div>
+    <!-- /wrap -->
+
+    <script>
+      var state = {
+        revenue: null,
+        structure: null,
+        bank: null,
+        amount: 0,
+        industry: null,
+        time: null,
+      };
+
+      /* ── Format number with commas ── */
+      function formatNumber(el) {
+        var raw = el.value.replace(/[^0-9]/g, "");
+        el.value = raw ? parseInt(raw, 10).toLocaleString("en-US") : "";
+      }
+
+      function getRaw(id) {
+        var v = document.getElementById(id).value.replace(/[^0-9]/g, "");
+        return v ? parseInt(v, 10) : 0;
+      }
+
+      /* ── Revenue — binary ── */
+      function selectRevenue(val) {
+        var btnDisq = document.getElementById("rev-btn-disq");
+        var btnQual = document.getElementById("rev-btn-qual");
+        btnDisq.classList.remove("selected-disq", "selected-qual");
+        btnQual.classList.remove("selected-disq", "selected-qual");
+
+        if (val === "disq") {
+          btnDisq.classList.add("selected-disq");
+          showDisq(
+            "Below our minimum threshold",
+            "Bizcap funds businesses generating $75,000 or more per month.",
+            "Come back as your revenue grows, we'd love to work with you."
+          );
+        } else {
+          btnQual.classList.add("selected-qual");
+          state.revenue = "qual";
+          revealField("fg-structure");
+          checkStep1();
+        }
+      }
+
+      /* ── Structure ── */
+      function selectStruct(btn, val) {
+        clearSel("struct-btns");
+        btn.classList.add("selected");
+        state.structure = val;
+        if (val === "disq") {
+          showDisq(
+            "Not eligible as a sole proprietor",
+            "Bizcap works with LLCs, corporations, and partnerships.",
+            "We recommend speaking with a business advisor about converting your structure before applying."
+          );
+          return;
+        }
+        revealField("fg-bank");
+        checkStep1();
+      }
+
+      /* ── Bank ── */
+      function selectBank(btn, val) {
+        clearSel("bank-btns");
+        btn.classList.add("selected");
+        state.bank = val;
+        document
+          .getElementById("bank-note")
+          .classList.toggle("visible", val === "neo");
+        revealField("fg-amount");
+        checkStep1();
+      }
+
+      /* ── Step 1 gate ── */
+      function checkStep1() {
+        state.amount = getRaw("amount-input");
+        var ok =
+          state.revenue === "qual" &&
+          state.structure === "qual" &&
+          state.bank &&
+          state.amount > 0;
+        document.getElementById("step1-next").disabled = !ok;
+      }
+
+      /* ── Step 2 ── */
+      function selectIndustry(btn, val) {
+        clearSel("industry-btns");
+        btn.classList.add("selected");
+        state.industry = val;
+        checkStep2();
+      }
+      function selectTime(btn, val) {
+        clearSel("time-btns");
+        btn.classList.add("selected");
+        state.time = val;
+        checkStep2();
+      }
+      function checkStep2() {
+        var biz = document.getElementById("biz-name").value.trim();
+        document.getElementById("step2-next").disabled = !(
+          biz &&
+          state.industry &&
+          state.time
+        );
+      }
+
+      /* ── Step 3 ── */
+      function checkStep3() {
+        var f = document.getElementById("fname").value.trim();
+        var p = document.getElementById("phone").value.trim();
+        var e = document.getElementById("email").value.trim();
+        document.getElementById("step3-next").disabled = !(
+          f &&
+          p &&
+          e &&
+          e.indexOf("@") > -1
+        );
+      }
+
+      /* ── Helpers ── */
+      function revealField(id) {
+        var el = document.getElementById(id);
+        if (!el.classList.contains("shown")) {
+          el.classList.add("shown");
+        }
+      }
+
+      function hideField(id) {
+        var el = document.getElementById(id);
+        el.classList.remove("shown");
+        el.style.display = "";
+      }
+
+      function clearSel(g) {
+        document.querySelectorAll("#" + g + " .sel-btn").forEach(function (b) {
+          b.classList.remove("selected");
+        });
+      }
+
+      function setProgress(step) {
+        var labels = [
+          "Step 1 of 3 — Eligibility check",
+          "Step 2 of 3 — Business details",
+          "Step 3 of 3 — Contact details",
+        ];
+        var pcts = ["33%", "66%", "100%"];
+        document.getElementById("prog-label").textContent = labels[step - 1];
+        document.getElementById("prog-count").textContent = pcts[step - 1];
+        document.getElementById("prog-fill").style.width = pcts[step - 1];
+        document.getElementById("prog-fill").style.background = "#0C79C1";
+      }
+
+      function hideAll() {
+        ["step-1", "step-2", "step-3", "screen-disq", "screen-success"].forEach(
+          function (id) {
+            document.getElementById(id).style.display = "none";
+          }
+        );
+      }
+
+      function goStep2() {
+        hideAll();
+        document.getElementById("step-2").style.display = "block";
+        setProgress(2);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function goStep3() {
+        hideAll();
+        document.getElementById("step-3").style.display = "block";
+        setProgress(3);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function goBack(n) {
+        hideAll();
+        document.getElementById("step-" + n).style.display = "block";
+        setProgress(n);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function showDisq(title, msg, alt) {
+        document.getElementById("disq-title").textContent = title;
+        document.getElementById("disq-msg").textContent = msg;
+        document.getElementById("disq-alt").textContent = alt;
+        hideAll();
+        document.getElementById("screen-disq").style.display = "block";
+        document.getElementById("prog-label").textContent = "Not eligible";
+        document.getElementById("prog-count").textContent = "—";
+        document.getElementById("prog-fill").style.width = "100%";
+        document.getElementById("prog-fill").style.background = "#ef4444";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function submitForm() {
+        hideAll();
+        document.getElementById("screen-success").style.display = "block";
+        document.getElementById("prog-label").textContent =
+          "Application submitted";
+        document.getElementById("prog-count").textContent = "Done";
+        document.getElementById("prog-fill").style.width = "100%";
+        document.getElementById("prog-fill").style.background = "#16a34a";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function restartForm() {
+        state = {
+          revenue: null,
+          structure: null,
+          bank: null,
+          amount: 0,
+          industry: null,
+          time: null,
+        };
+        document
+          .getElementById("rev-btn-disq")
+          .classList.remove("selected-disq", "selected-qual");
+        document
+          .getElementById("rev-btn-qual")
+          .classList.remove("selected-disq", "selected-qual");
+        document.getElementById("amount-input").value = "";
+        document.getElementById("biz-name").value = "";
+        document.getElementById("bank-note").classList.remove("visible");
+        ["fg-structure", "fg-bank", "fg-amount"].forEach(hideField);
+        document.querySelectorAll(".sel-btn").forEach(function (b) {
+          b.classList.remove("selected");
+        });
+        document.getElementById("step1-next").disabled = true;
+        document.getElementById("prog-fill").style.background = "#0C79C1";
+        hideAll();
+        document.getElementById("step-1").style.display = "block";
+        setProgress(1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    </script>
+  </body>
+</html>

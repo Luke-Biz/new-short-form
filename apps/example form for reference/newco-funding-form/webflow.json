@@ -1,0 +1,18 @@
+{
+  "library": {
+    "name": "Bizcap Form Library",
+    "description": "Funding application form",
+    "components": [
+      "src/components/**/*.webflow.tsx"
+    ],
+    "id": "newco-forms"
+  },
+  "telemetry": {
+    "global": {
+      "allowTelemetry": true,
+      "lastPrompted": 1779857421384,
+      "version": "1.23.0"
+    }
+  },
+  "siteId": "6969aa104b0f0bb5f170122b"
+}

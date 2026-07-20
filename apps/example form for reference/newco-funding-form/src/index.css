@@ -1,0 +1,43 @@
+@font-face {
+  font-family: "Montserrat";
+  src: url("https://cdn.prod.website-files.com/6969aa104b0f0bb5f170122b/6989467078bcc458a44f3390_Montserrat-VariableFont_wght%5B1%5D.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Montserrat";
+  src: url("https://cdn.prod.website-files.com/6969aa104b0f0bb5f170122b/698946708ae060b3da6fe5b5_Montserrat-Italic-VariableFont_wght%5B1%5D.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Reduced-motion: disable slide-down */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-slide-down {
+      animation: none !important;
+    }
+    .animate-fade-in {
+      animation: none !important;
+    }
+  }
+}

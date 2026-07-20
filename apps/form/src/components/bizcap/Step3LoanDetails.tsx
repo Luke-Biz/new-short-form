@@ -1,7 +1,7 @@
-import { useState, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { Controller, type Control, type UseFormTrigger } from 'react-hook-form';
 import {
   Banknote,
+  CheckCircle2,
   CircleDollarSign,
   Ellipsis,
   Hammer,
@@ -10,13 +10,9 @@ import {
   User,
   Wrench,
 } from 'lucide-react';
-import {
-  formatMoneyWithCommas,
-  moneyPasteSanitize,
-  stripMoneyToNumberString,
-} from '../../lib/formUtils';
 import { type Step3Data } from '../../lib/schemas';
-import { inputBaseClass, labelFloatClass } from './FloatingInput';
+import { Field, fieldDescribedBy } from './Field';
+import { MoneyInput } from './MoneyInput';
 
 const PURPOSES = [
   { id: 'equipment', label: 'Equipment', Icon: Wrench },
@@ -36,42 +32,15 @@ type Step3LoanDetailsProps = {
 };
 
 export function Step3LoanDetails({ control, formId, trigger }: Step3LoanDetailsProps) {
-  const [revenueFocused, setRevenueFocused] = useState(false);
-  const [loanFocused, setLoanFocused] = useState(false);
-  const [revenueAutofillHint, setRevenueAutofillHint] = useState(false);
-  const [loanAutofillHint, setLoanAutofillHint] = useState(false);
-
-  const onMoneyKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    const nav = [
-      'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
-      'ArrowLeft', 'ArrowRight', 'Home', 'End',
-    ];
-    if (nav.includes(e.key)) return;
-    const v = e.currentTarget.value;
-    if (e.key === '.' && !v.replace(/,/g, '').includes('.')) return;
-    if (/\d/.test(e.key)) return;
-    e.preventDefault();
-  };
-
-  const applyMoneyPaste = (
-    e: ClipboardEvent<HTMLInputElement>,
-    current: string,
-    setter: (s: string) => void,
-  ) => {
-    e.preventDefault();
-    const paste = moneyPasteSanitize(e.clipboardData.getData('text'));
-    const selStart = e.currentTarget.selectionStart ?? current.length;
-    const selEnd = e.currentTarget.selectionEnd ?? current.length;
-    const next = current.slice(0, selStart) + paste + current.slice(selEnd);
-    setter(stripMoneyToNumberString(next));
-  };
-
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-[18px]">
       <div>
-        <h1 className="text-[26px] font-bold leading-tight text-[#111827]">Your loan</h1>
-        <p className="mt-1 text-[15px] font-normal text-[#6B7280]">
+        <div className="mb-[10px] inline-flex items-center gap-[5px] rounded-full bg-[var(--brand-light)] px-[10px] py-1 text-[11px] font-medium text-[var(--brand-color)]">
+          <CheckCircle2 className="h-[13px] w-[13px]" aria-hidden />
+          One last step
+        </div>
+        <h1 className="text-[18px] font-medium tracking-[-0.2px] text-[#111827]">Your loan</h1>
+        <p className="mt-[5px] text-[13px] leading-[1.55] text-[#6B7280]">
           Almost done — tell us what you need.
         </p>
       </div>
@@ -79,109 +48,47 @@ export function Step3LoanDetails({ control, formId, trigger }: Step3LoanDetailsP
       <Controller
         name="monthlyRevenue"
         control={control}
-        render={({ field, fieldState }) => {
-          const display = revenueFocused ? field.value : formatMoneyWithCommas(field.value);
-          return (
-            <div className="bizcap-field">
-              <div className="relative">
-                <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-10 flex items-center border-r border-[#D1D5DB] pl-[14px] pr-2 text-[16px] text-[#374151]">
-                  $
-                </div>
-                <input
-                  id={`${formId}-monthlyRevenue`}
-                  type="text"
-                  inputMode="decimal"
-                  autoFocus
-                  value={display}
-                  onChange={(e) => { field.onChange(stripMoneyToNumberString(e.target.value)); if (fieldState.invalid) trigger('monthlyRevenue'); }}
-                  onKeyDown={onMoneyKeyDown}
-                  onPaste={(e) => applyMoneyPaste(e, field.value, field.onChange)}
-                  onFocus={() => setRevenueFocused(true)}
-                  onBlur={() => { setRevenueFocused(false); field.onBlur(); }}
-                  onAnimationStart={(e) => {
-                    if (e.animationName === 'bizcap-autofill-detect') setRevenueAutofillHint(true);
-                  }}
-                  aria-invalid={fieldState.error ? true : undefined}
-                  aria-describedby={fieldState.error ? `${formId}-monthlyRevenue-err` : undefined}
-                  className={`${inputBaseClass(!!fieldState.error)} pl-10`}
-                />
-                <label
-                  htmlFor={`${formId}-monthlyRevenue`}
-                  className={labelFloatClass(
-                    revenueFocused || field.value.length > 0 || revenueAutofillHint,
-                    { left: 'left-10' },
-                  )}
-                >
-                  Monthly revenue
-                </label>
-              </div>
-              {fieldState.error ? (
-                <p
-                  id={`${formId}-monthlyRevenue-err`}
-                  className="mt-1 text-[12px] text-[#DC2626]"
-                  role="alert"
-                >
-                  {fieldState.error.message}
-                </p>
-              ) : null}
-            </div>
-          );
-        }}
+        render={({ field, fieldState }) => (
+          <Field
+            id={`${formId}-monthlyRevenue`}
+            label="Monthly revenue"
+            error={fieldState.error?.message}
+          >
+            <MoneyInput
+              id={`${formId}-monthlyRevenue`}
+              placeholder="e.g. 50,000"
+              autoFocus
+              value={field.value}
+              onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('monthlyRevenue'); }}
+              onBlur={field.onBlur}
+              error={fieldState.error?.message}
+              describedBy={fieldDescribedBy(`${formId}-monthlyRevenue`, { error: !!fieldState.error })}
+            />
+          </Field>
+        )}
       />
 
       <Controller
         name="loanAmount"
         control={control}
-        render={({ field, fieldState }) => {
-          const display = loanFocused ? field.value : formatMoneyWithCommas(field.value);
-          return (
-            <div className="bizcap-field">
-              <div className="relative">
-                <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-10 flex items-center border-r border-[#D1D5DB] pl-[14px] pr-2 text-[16px] text-[#374151]">
-                  $
-                </div>
-                <input
-                  id={`${formId}-loanAmount`}
-                  type="text"
-                  inputMode="decimal"
-                  value={display}
-                  onChange={(e) => { field.onChange(stripMoneyToNumberString(e.target.value)); if (fieldState.invalid) trigger('loanAmount'); }}
-                  onKeyDown={onMoneyKeyDown}
-                  onPaste={(e) => applyMoneyPaste(e, field.value, field.onChange)}
-                  onFocus={() => setLoanFocused(true)}
-                  onBlur={() => { setLoanFocused(false); field.onBlur(); }}
-                  onAnimationStart={(e) => {
-                    if (e.animationName === 'bizcap-autofill-detect') setLoanAutofillHint(true);
-                  }}
-                  aria-invalid={fieldState.error ? true : undefined}
-                  aria-describedby={
-                    fieldState.error
-                      ? `${formId}-loanAmount-hint ${formId}-loanAmount-err`
-                      : `${formId}-loanAmount-hint`
-                  }
-                  className={`${inputBaseClass(!!fieldState.error)} pl-10`}
-                />
-                <label
-                  htmlFor={`${formId}-loanAmount`}
-                  className={labelFloatClass(
-                    loanFocused || field.value.length > 0 || loanAutofillHint,
-                    { left: 'left-10' },
-                  )}
-                >
-                  Desired loan amount
-                </label>
-              </div>
-              <p id={`${formId}-loanAmount-hint`} className="mt-1 text-[12px] text-[#6B7280]">
-                Up to $4,000,000
-              </p>
-              {fieldState.error ? (
-                <p id={`${formId}-loanAmount-err`} className="mt-1 text-[12px] text-[#DC2626]" role="alert">
-                  {fieldState.error.message}
-                </p>
-              ) : null}
-            </div>
-          );
-        }}
+        render={({ field, fieldState }) => (
+          <Field
+            id={`${formId}-loanAmount`}
+            label="Desired loan amount"
+            hint="Up to $4,000,000"
+            error={fieldState.error?.message}
+          >
+            <MoneyInput
+              id={`${formId}-loanAmount`}
+              placeholder="e.g. 250,000"
+              value={field.value}
+              onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('loanAmount'); }}
+              onBlur={field.onBlur}
+              error={fieldState.error?.message}
+              describedBy={fieldDescribedBy(`${formId}-loanAmount`, { hint: true, error: !!fieldState.error })}
+            />
+          </Field>
+        )}
       />
 
       <Controller
@@ -189,7 +96,7 @@ export function Step3LoanDetails({ control, formId, trigger }: Step3LoanDetailsP
         control={control}
         render={({ field, fieldState }) => (
           <div>
-            <p id={`${formId}-purpose-label`} className="mb-2 text-[13px] font-medium text-[#374151]">
+            <p id={`${formId}-purpose-label`} className="mb-[7px] text-[13px] font-medium text-[#111827]">
               Purpose of funds
             </p>
             <div
@@ -199,7 +106,7 @@ export function Step3LoanDetails({ control, formId, trigger }: Step3LoanDetailsP
               aria-label="Purpose of funds"
               aria-invalid={fieldState.error ? true : undefined}
               aria-describedby={fieldState.error ? `${formId}-purpose-err` : undefined}
-              className="grid auto-rows-fr max-[359px]:grid-cols-2 min-[360px]:grid-cols-4 gap-2"
+              className="grid auto-rows-fr gap-[7px] max-[359px]:grid-cols-2 min-[360px]:grid-cols-4"
               tabIndex={-1}
             >
               {PURPOSES.map(({ id, label, Icon }) => {
@@ -219,21 +126,25 @@ export function Step3LoanDetails({ control, formId, trigger }: Step3LoanDetailsP
                       }
                     }}
                     className={[
-                      'flex h-full min-h-[64px] flex-col items-center justify-center gap-1 rounded-[10px] border-[1.5px] px-1.5 py-2.5 text-center text-[13px] transition-colors',
-                      'focus-visible:outline-none focus-visible:border-[var(--brand-color)] focus-visible:shadow-[0_0_0_3px_rgba(12,121,193,0.12)]',
+                      'flex h-full min-h-[64px] flex-col items-center justify-center gap-1 rounded-[8px] border-[1.5px] px-1.5 py-2.5 text-center text-[13px]',
+                      'transition-[border-color,background-color,color] duration-[130ms]',
+                      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-color)]',
                       selected
-                        ? 'border-[var(--brand-color)] bg-[#E8F4FD] text-[var(--brand-color)]'
-                        : 'border-[#D1D5DB] bg-white text-[#111827] hover:border-[#93C5FD]',
+                        ? 'border-[var(--brand-color)] bg-[var(--brand-light)] font-medium text-[var(--brand-color)]'
+                        : 'border-[#E5E7EB] bg-white text-[#111827] hover:border-[var(--brand-color)] hover:bg-[var(--brand-light)]',
                     ].join(' ')}
                   >
-                    <Icon className="h-5 w-5 shrink-0" aria-hidden />
+                    <Icon
+                      className={`h-5 w-5 shrink-0 ${selected ? 'text-[var(--brand-color)]' : 'text-[#9CA3AF]'}`}
+                      aria-hidden
+                    />
                     <span>{label}</span>
                   </button>
                 );
               })}
             </div>
             {fieldState.error ? (
-              <p id={`${formId}-purpose-err`} className="mt-1 text-[12px] text-[#DC2626]" role="alert">
+              <p id={`${formId}-purpose-err`} className="mt-1.5 text-[12px] text-[#991B1B]" role="alert">
                 {fieldState.error.message}
               </p>
             ) : null}

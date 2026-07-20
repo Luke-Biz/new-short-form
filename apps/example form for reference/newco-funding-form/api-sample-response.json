@@ -1,0 +1,218 @@
+{
+  "data": {
+    "id": "Some Text",
+    "createdAt": "2026-05-26T00:15:27.037Z",
+    "createdBy": {
+      "type": "user",
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "fullName": "John Doe"
+    },
+    "updatedAt": "2026-05-26T00:15:27.037Z",
+    "updatedBy": {
+      "type": "user",
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "fullName": "John Doe"
+    },
+    "status": "Some Status",
+    "statusSinceDate": "2026-05-26T00:15:27.037Z",
+    "subStatus": "Some SubStatus",
+    "subStatusSinceDate": "2026-05-26T00:15:27.037Z",
+    "broker": {
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "name": "Some Name"
+    },
+    "brokerRep": {
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "firstName": "First Name",
+      "lastName": "Last Name"
+    },
+    "accessTo": [
+      {
+        "type": "user",
+        "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+        "fullName": "John Doe"
+      }
+    ],
+    "watchers": [
+      {
+        "type": "user",
+        "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+        "fullName": "John Doe"
+      }
+    ],
+    "delegateTo": {
+      "type": "user",
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "fullName": "John Doe"
+    },
+    "owner": {
+      "type": "user",
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "fullName": "John Doe"
+    },
+    "firstName": "Some Text",
+    "lastName": "Some Text",
+    "phone": "+1111111111",
+    "email": "some@email.com",
+    "dateOfBirth": "2026-05-26T00:15:27.037Z",
+    "companyName": "Some Text",
+    "loanType": "New",
+    "tradingName": "Some Text",
+    "businessStartDate": "2026-05-26T00:15:27.037Z",
+    "crn": "Some Text",
+    "uen": "Some Text",
+    "businessAddress": {
+      "addressLine1": "string",
+      "addressLine2": "string",
+      "country": "string",
+      "city": "string",
+      "state": "string",
+      "zipCode": "string",
+      "fullAddress": "string"
+    },
+    "residentialAddress": {
+      "addressLine1": "string",
+      "addressLine2": "string",
+      "country": "string",
+      "city": "string",
+      "state": "string",
+      "zipCode": "string",
+      "fullAddress": "string"
+    },
+    "physicalAddress": {
+      "addressLine1": "string",
+      "addressLine2": "string",
+      "country": "string",
+      "city": "string",
+      "state": "string",
+      "zipCode": "string",
+      "fullAddress": "string"
+    },
+    "agreeToBizcapConsentPrivacy": "Yes",
+    "whatsAppConsent": "Yes",
+    "industryCategory": "Some Text",
+    "industry": "Some Text",
+    "averageMonthlyTurnover": 123,
+    "amountRequested": 123,
+    "loanPurpose": "Equipment Purchase",
+    "driversLicenseNumber": "Some Text",
+    "citizenshipStatus": "Permanent Resident",
+    "politicallyExposedPerson": "Yes",
+    "soleDirector": "Yes",
+    "homeOwner": "Yes",
+    "suitableProducts": "LOC",
+    "documentId": "Some Text",
+    "externalReferenceId": "Some Text",
+    "applicationCompleted": "No",
+    "applicationCompletedDate": "2026-05-26T00:15:27.037Z",
+    "leadSource": "Advertisement",
+    "callClientOrBroker": "Call Client",
+    "notes": "Some Text",
+    "utmTerm": "Some Text",
+    "utmSource": "Some Text",
+    "utmMedium": "Some Text",
+    "utmCampaign": "Some Text",
+    "gclid": "Some Text",
+    "fbclid": "Some Text",
+    "department": "Some Text",
+    "businessAddressCountry": "Some Text",
+    "businessAddressState": "Some Text",
+    "description": "Some Text",
+    "skypeId": "Some Text",
+    "twitterId": "Some Text",
+    "priority": "Low",
+    "brazeReEngagement": "No",
+    "nzbn": "Some Text",
+    "thirdPartyMarketingConsent": "Yes",
+    "passportNumber": "Some Text",
+    "sfid": "Some Text",
+    "sfid2": "Some Text",
+    "convertedDealId": "Some Text",
+    "userStamps": {},
+    "timeStamps": {},
+    "timeMetrics": {},
+    "deleted": "No",
+    "deletedAt": "2026-05-26T00:15:27.037Z",
+    "deletedBy": {
+      "type": "user",
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "fullName": "John Doe"
+    },
+    "clonedFromId": "Some Text",
+    "clonedRecord": "No",
+    "bankStatementsReceived": "No",
+    "bankStatementsReceivedDate": "2026-05-26T00:15:27.037Z",
+    "applicationLink": "Some Text",
+    "bankStatementsLinkPlaid": "Some Text",
+    "bankStatementsLinkIllion": "Some Text",
+    "bankStatementsLinkCreditSense": "Some Text",
+    "bankStatementsLinkFinApi": "Some Text",
+    "provisoLink": "Some Text",
+    "provisoLinkPdf": "Some Text",
+    "brazeTopLevelFieldsUpdatedAt": "2026-05-26T00:15:27.037Z",
+    "brazeTouchPoints": 123,
+    "internalBdmUser": {
+      "type": "user",
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "fullName": "John Doe"
+    },
+    "internalSupportUser": {
+      "type": "user",
+      "id": "7e8a17fd-3577-48f4-a0e4-6cb83ea204ba",
+      "fullName": "John Doe"
+    },
+    "smTouchPoints": 123,
+    "totalTouchPoints": 123,
+    "createdInBusinessHours": "Yes",
+    "domainFromEmail": "Some Text",
+    "duplicateCount": 123,
+    "lastActivityDate": "2026-05-26T00:15:27.037Z",
+    "sourceChannel": "Web Form",
+    "driverVersionNumber": "Some Text",
+    "secondaryEmail": "some@email.com",
+    "secondaryPhone": "+1111111111",
+    "tradingAddress": {
+      "addressLine1": "string",
+      "addressLine2": "string",
+      "country": "string",
+      "city": "string",
+      "state": "string",
+      "zipCode": "string",
+      "fullAddress": "string"
+    },
+    "numberOfCallsMade": 123,
+    "lastCallDate": "2026-05-26T00:15:27.037Z",
+    "partnerLeadReferenceId": "Some Text",
+    "callOnBehalfOf": "Some Text",
+    "abn": "Some Text",
+    "acn": "Some Text",
+    "businessType": "Corporation",
+    "companyNumber": "Some Text",
+    "brokerName": "Some Text",
+    "brokerContactName": "Some Text",
+    "brokerContactEmail": "some@email.com",
+    "brokerContactNumber": "+1111111111",
+    "partnerNotes": "Some Text",
+    "brazeUserProfile": {
+      "emailSubscribeState": "Subscribed",
+      "marketingEmails": "Subscribed",
+      "transactionalEmails": "Subscribed",
+      "marketingSms": "Subscribed",
+      "transactionalSms": "Subscribed"
+    },
+    "daysSinceLastActivityDate": 123,
+    "country": "AR",
+    "deletionFlag": "No",
+    "attachments": [
+      {
+        "id": "string",
+        "fileName": "string",
+        "createdAt": "2026-05-26T00:15:27.037Z",
+        "createdBy": {
+          "id": "Some Text",
+          "fullName": "Some Text"
+        }
+      }
+    ]
+  }
+}

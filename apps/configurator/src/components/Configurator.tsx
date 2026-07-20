@@ -1,5 +1,10 @@
-import { useState, useRef, useCallback } from 'react';
-import { Check, Copy, Upload, X, Loader } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Check, Copy, Upload, X, Loader, TriangleAlert, Monitor, Smartphone } from 'lucide-react';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { contrastRatioWithWhite, MIN_UI_CONTRAST } from '../lib/colorUtils';
+import { copyText, selectElementText } from '../lib/clipboard';
+
+type CopyStatus = 'idle' | 'copied' | 'failed';
 
 const FORM_URL = import.meta.env.VITE_FORM_URL ?? 'http://localhost:5173';
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
@@ -7,31 +12,142 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string;
 
 const DEFAULT_COLOR = '#0C79C1';
 
-function buildFormUrl(color: string, logoUrl: string): string {
+type ContactPreference = 'client' | 'broker';
+
+function buildFormUrl(color: string, logoUrl: string, contact: ContactPreference): string {
   const params = new URLSearchParams();
   if (color && color !== DEFAULT_COLOR) params.set('color', color);
   if (logoUrl) params.set('logo', logoUrl);
+  if (contact === 'broker') params.set('contact', 'broker');
   const qs = params.toString();
   return qs ? `${FORM_URL}?${qs}` : FORM_URL;
 }
 
+/** Only the in-page preview iframe gets this — generated links never carry it. */
+function withPreviewParam(url: string): string {
+  return url.includes('?') ? `${url}&preview=1` : `${url}?preview=1`;
+}
+
+// Fixed pixel height — height="100%" collapses to 0 in many site builders
+// because the parent has no explicit height.
 function buildEmbedCode(url: string): string {
-  return `<iframe\n  src="${url}"\n  width="100%"\n  height="100%"\n  style="border: none; min-height: 600px;"\n  title="Bizcap loan application"\n></iframe>`;
+  return `<iframe\n  src="${url}"\n  width="100%"\n  height="800"\n  style="border: none;"\n  title="Bizcap loan application"\n></iframe>`;
+}
+
+const STORAGE_KEY = 'bizcap-configurator-v1';
+
+type SavedConfig = {
+  color?: string;
+  logoUrl?: string;
+  previewDevice?: 'desktop' | 'mobile';
+  contactPreference?: ContactPreference;
+};
+
+// localStorage can throw when embedded with third-party storage blocked
+// (e.g. the CRM iframe) — persistence is best-effort.
+function loadSavedConfig(): SavedConfig {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as SavedConfig) : {};
+  } catch {
+    return {};
+  }
+}
+
+type StepHeadingProps = {
+  step: number;
+  title: string;
+  className?: string;
+};
+
+function StepHeading({ step, title, className = 'mb-4' }: StepHeadingProps) {
+  return (
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0C79C1] text-[12px] font-bold text-white">
+        {step}
+      </span>
+      <h2 className="text-[15px] font-semibold text-[#111827]">{title}</h2>
+    </div>
+  );
 }
 
 export function Configurator() {
-  const [color, setColor] = useState(DEFAULT_COLOR);
-  const [hexInput, setHexInput] = useState(DEFAULT_COLOR);
-  const [logoUrl, setLogoUrl] = useState('');
-  const [logoUrlInput, setLogoUrlInput] = useState('');
+  const [saved] = useState(loadSavedConfig);
+  const savedColor =
+    saved.color && /^#[0-9A-Fa-f]{6}$/.test(saved.color) ? saved.color : DEFAULT_COLOR;
+
+  const [color, setColor] = useState(savedColor);
+  const [hexInput, setHexInput] = useState(savedColor);
+  const [logoUrl, setLogoUrl] = useState(saved.logoUrl ?? ''); // validated — only URLs that actually loaded an image
+  const [logoUrlInput, setLogoUrlInput] = useState(saved.logoUrl ?? '');
+  const [logoCheckStatus, setLogoCheckStatus] = useState<'idle' | 'checking' | 'error'>('idle');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const [previewUrl, setPreviewUrl] = useState('');
-  const [generatedUrl, setGeneratedUrl] = useState('');
-  const [copiedUrl, setCopiedUrl] = useState(false);
-  const [copiedEmbed, setCopiedEmbed] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>(
+    saved.previewDevice === 'mobile' ? 'mobile' : 'desktop',
+  );
+  const [contactPreference, setContactPreference] = useState<ContactPreference>(
+    saved.contactPreference === 'broker' ? 'broker' : 'client',
+  );
+  const [urlCopyStatus, setUrlCopyStatus] = useState<CopyStatus>('idle');
+  const [embedCopyStatus, setEmbedCopyStatus] = useState<CopyStatus>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const urlTextRef = useRef<HTMLAnchorElement>(null);
+  const embedTextRef = useRef<HTMLPreElement>(null);
+
+  // Link + embed code update instantly; the iframe reload is debounced so
+  // colour-picker dragging and typing don't cause a reload storm.
+  const formUrl = buildFormUrl(color, logoUrl, contactPreference);
+  const previewUrl = useDebouncedValue(formUrl, 600);
+
+  const lowContrast = contrastRatioWithWhite(color) < MIN_UI_CONTRAST;
+
+  // Only flag a bad hex code once typing has settled, not on every keystroke.
+  const debouncedHexInput = useDebouncedValue(hexInput, 800);
+  const hexInvalid =
+    debouncedHexInput === hexInput && !/^#[0-9A-Fa-f]{6}$/.test(hexInput);
+
+  // Persist config so partners can come back and tweak later.
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ color, logoUrl, previewDevice, contactPreference }),
+      );
+    } catch {
+      // storage unavailable — skip persistence
+    }
+  }, [color, logoUrl, previewDevice, contactPreference]);
+
+  // Validate pasted logo URLs by actually loading the image once typing settles.
+  // Only URLs that load become the logo, so links never carry a broken image.
+  const debouncedLogoInput = useDebouncedValue(logoUrlInput.trim(), 600);
+  useEffect(() => {
+    const url = debouncedLogoInput;
+    if (!url) {
+      setLogoUrl('');
+      setLogoCheckStatus('idle');
+      return;
+    }
+    if (url === logoUrl) return; // already validated (e.g. set by a successful upload)
+    let cancelled = false;
+    setLogoCheckStatus('checking');
+    const img = new Image();
+    img.onload = () => {
+      if (cancelled) return;
+      setLogoUrl(url);
+      setLogoCheckStatus('idle');
+    };
+    img.onerror = () => {
+      if (cancelled) return;
+      setLogoUrl('');
+      setLogoCheckStatus('error');
+    };
+    img.src = url;
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedLogoInput, logoUrl]);
 
   const applyColor = useCallback((hex: string) => {
     const valid = /^#[0-9A-Fa-f]{6}$/.test(hex);
@@ -69,6 +185,7 @@ export function Configurator() {
       const data = await res.json() as { secure_url: string };
       setLogoUrl(data.secure_url);
       setLogoUrlInput(data.secure_url);
+      setLogoCheckStatus('idle');
     } catch {
       setUploadError('Upload failed. Please try again or paste a URL instead.');
     } finally {
@@ -78,33 +195,44 @@ export function Configurator() {
 
   const handleUrlInput = (val: string) => {
     setLogoUrlInput(val);
-    setLogoUrl(val);
     setUploadError('');
   };
 
   const clearLogo = () => {
     setLogoUrl('');
     setLogoUrlInput('');
+    setLogoCheckStatus('idle');
     setUploadError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleGenerate = () => {
-    const url = buildFormUrl(color, logoUrl);
-    setPreviewUrl(url);
-    setGeneratedUrl(url);
-    setCopiedUrl(false);
-    setCopiedEmbed(false);
-    if (iframeRef.current) iframeRef.current.src = url;
+  const handleReset = () => {
+    setColor(DEFAULT_COLOR);
+    setHexInput(DEFAULT_COLOR);
+    setPreviewDevice('desktop');
+    setContactPreference('client');
+    clearLogo();
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // storage unavailable — nothing to clear
+    }
   };
 
-  const copyToClipboard = async (text: string, setCopied: (v: boolean) => void) => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async (
+    text: string,
+    setStatus: (s: CopyStatus) => void,
+    textEl: HTMLElement | null,
+  ) => {
+    const ok = await copyText(text);
+    // If copy is blocked (e.g. CRM iframe without clipboard permission),
+    // highlight the text so a manual Ctrl+C still works.
+    if (!ok && textEl) selectElementText(textEl);
+    setStatus(ok ? 'copied' : 'failed');
+    window.setTimeout(() => setStatus('idle'), ok ? 2000 : 6000);
   };
 
-  const embedCode = generatedUrl ? buildEmbedCode(generatedUrl) : '';
+  const embedCode = buildEmbedCode(formUrl);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-sans">
@@ -113,22 +241,33 @@ export function Configurator() {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
             <h1 className="text-[18px] font-bold text-[#111827]">Form Configurator</h1>
-            <p className="text-[13px] text-[#6B7280]">Customise the Bizcap application form</p>
+            <p className="text-[13px] text-[#6B7280]">
+              Brand the application form with your colours and logo, then share your link — takes about a minute
+            </p>
           </div>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="120"
-            height="16"
-            viewBox="0 0 232.667 32.2"
-            aria-label="Bizcap"
-            role="img"
-          >
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="rounded-lg border border-[#E5E7EB] px-3 py-1.5 text-[13px] text-[#6B7280] hover:border-[#D1D5DB] hover:text-[#374151]"
+            >
+              Start over
+            </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="120"
+              height="16"
+              viewBox="0 0 232.667 32.2"
+              aria-label="Bizcap"
+              role="img"
+            >
             <path
               d="M50.821-45.56h0v6.267h5.4a2.9,2.9,0,0,0,2.809-3.026,2.783,2.783,0,0,0-2.809-3.026l-5.4-.216ZM44.554-20.924h0v-30.9H56.872c5.4,0,8.86,3.89,8.86,9.293a7.1,7.1,0,0,1-2.809,6.051,7.574,7.574,0,0,1,3.242,6.267,9.179,9.179,0,0,1-9.077,9.293Zm6.267-12.318h0v6.267h5.4A2.954,2.954,0,0,0,59.249-30a3.14,3.14,0,0,0-3.025-3.242Zm45.6,12.318H90.152v-30.9h6.267Zm44.086,0H119.759c3.674-8.212,7.348-16.64,11.238-24.852h-9.509v-6.051h18.8c-3.674,8.212-7.348,16.424-11.238,24.636h11.454v6.267ZM183.943-44.7a9.739,9.739,0,0,0-5.4-1.3c-12.318,0-12.318,18.8,0,18.8a18.147,18.147,0,0,0,6.051-1.3L185.456-22a17.61,17.61,0,0,1-6.7,1.3c-20.962,0-20.962-31.336,0-31.336a13.805,13.805,0,0,1,6.051,1.3l-.864,6.051ZM206.2-20.924h0l12.966-31.984h.648l12.966,31.984h-6.915l-1.081-3.242H214.63l-1.3,3.242ZM216.791-30h5.619L219.6-38Zm45.6,9.077h-6.267v-30.9h12.1c12.1,0,11.886,19.017,0,19.017h-6.051v11.886Zm0-17.721h5.4c4.106,0,4.106-6.915,0-6.915h-5.4Z"
               transform="translate(-44.554 52.908)"
               fill="#0c79c1"
             />
-          </svg>
+            </svg>
+          </div>
         </div>
       </header>
 
@@ -140,7 +279,7 @@ export function Configurator() {
 
             {/* Brand colour */}
             <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6">
-              <h2 className="mb-4 text-[15px] font-semibold text-[#111827]">Primary colour</h2>
+              <StepHeading step={1} title="Choose your colour" />
               <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[#E5E7EB]">
                   <input
@@ -158,8 +297,13 @@ export function Configurator() {
                   onChange={(e) => handleHexInput(e.target.value)}
                   maxLength={7}
                   placeholder="#0C79C1"
-                  className="w-full rounded-lg border border-[#D1D5DB] px-3 py-2 font-mono text-[14px] text-[#111827] focus:border-[#0C79C1] focus:outline-none focus:ring-2 focus:ring-[#0C79C1]/10"
+                  className={`w-full rounded-lg border px-3 py-2 font-mono text-[14px] text-[#111827] focus:outline-none focus:ring-2 ${
+                    hexInvalid
+                      ? 'border-[#DC2626] focus:border-[#DC2626] focus:ring-[#DC2626]/10'
+                      : 'border-[#D1D5DB] focus:border-[#0C79C1] focus:ring-[#0C79C1]/10'
+                  }`}
                   aria-label="Hex colour code"
+                  aria-invalid={hexInvalid || undefined}
                 />
                 <button
                   type="button"
@@ -169,6 +313,11 @@ export function Configurator() {
                   Reset
                 </button>
               </div>
+              {hexInvalid && (
+                <p className="mt-2 text-[12px] text-[#DC2626]" role="alert">
+                  That doesn&apos;t look like a valid colour code — it should be 6 characters, like #0C79C1.
+                </p>
+              )}
               <div className="mt-3 flex flex-wrap gap-2">
                 {['#0C79C1', '#1D4ED8', '#7C3AED', '#DC2626', '#059669', '#D97706', '#111827'].map((c) => (
                   <button
@@ -186,17 +335,38 @@ export function Configurator() {
                   />
                 ))}
               </div>
+              {lowContrast && (
+                <div
+                  className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3"
+                  role="alert"
+                >
+                  <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
+                  <p className="text-[12px] leading-snug text-amber-800">
+                    This colour may be hard to read — buttons on the form use white text.
+                    A darker shade will be easier for your customers.
+                  </p>
+                </div>
+              )}
             </section>
 
             {/* Logo */}
             <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6">
-              <h2 className="mb-1 text-[15px] font-semibold text-[#111827]">Logo</h2>
+              <StepHeading step={2} title="Add your logo" className="mb-1" />
               <p className="mb-4 text-[13px] text-[#6B7280]">Upload a file or paste a URL. Leave blank to use the default Bizcap logo.</p>
 
               {/* Upload zone */}
               <div
-                className="relative mb-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#D1D5DB] bg-[#F9FAFB] px-4 py-6 text-center transition-colors hover:border-[#0C79C1] hover:bg-blue-50/40"
+                role="button"
+                tabIndex={0}
+                aria-label="Upload a logo image"
+                className="relative mb-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#D1D5DB] bg-[#F9FAFB] px-4 py-6 text-center transition-colors hover:border-[#0C79C1] hover:bg-blue-50/40 focus-visible:border-[#0C79C1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C79C1]/30"
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -242,15 +412,34 @@ export function Configurator() {
                 )}
               </div>
 
+              {logoCheckStatus === 'checking' && (
+                <p className="mt-2 flex items-center gap-1.5 text-[12px] text-[#6B7280]">
+                  <Loader className="h-3 w-3 animate-spin" aria-hidden />
+                  Checking image…
+                </p>
+              )}
+              {logoCheckStatus === 'error' && (
+                <p className="mt-2 text-[12px] text-[#DC2626]" role="alert">
+                  We couldn&apos;t load an image from that link — check the address, or upload the file instead.
+                </p>
+              )}
               {uploadError && (
-                <p className="mt-2 text-[12px] text-[#DC2626]">{uploadError}</p>
+                <p className="mt-2 text-[12px] text-[#DC2626]" role="alert">{uploadError}</p>
               )}
 
               {/* Preview thumbnail */}
               {logoUrl && !uploading && (
                 <div className="mt-3 flex items-center gap-3 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-3">
-                  <img src={logoUrl} alt="Logo preview" className="h-8 max-w-[120px] object-contain" />
-                  <span className="truncate text-[12px] text-[#6B7280]">Logo uploaded</span>
+                  <img
+                    src={logoUrl}
+                    alt="Logo preview"
+                    className="h-8 max-w-[120px] object-contain"
+                    onError={() => {
+                      setLogoUrl('');
+                      setLogoCheckStatus('error');
+                    }}
+                  />
+                  <span className="truncate text-[12px] text-[#6B7280]">Logo ready to use</span>
                   <button
                     type="button"
                     onClick={clearLogo}
@@ -263,94 +452,172 @@ export function Configurator() {
               )}
             </section>
 
-            {/* Generate */}
-            <button
-              type="button"
-              onClick={handleGenerate}
-              className="flex h-12 w-full items-center justify-center rounded-xl bg-[#0C79C1] text-[15px] font-semibold text-white transition-colors hover:bg-[#0A6AAA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C79C1] focus-visible:ring-offset-2"
-            >
-              Generate preview
-            </button>
+            {/* Contact preference */}
+            <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6">
+              <StepHeading step={3} title="Who should we contact?" className="mb-1" />
+              <p className="mb-4 text-[13px] text-[#6B7280]">
+                When an application comes in, who should Bizcap call about it?
+              </p>
+              <div className="flex flex-col gap-2" role="radiogroup" aria-label="Contact preference">
+                {([
+                  {
+                    value: 'client',
+                    label: 'Contact my client directly',
+                    hint: 'We speak to the applicant about their application',
+                  },
+                  {
+                    value: 'broker',
+                    label: 'Contact me (the broker)',
+                    hint: 'We come to you with any updates',
+                  },
+                ] as const).map((opt) => (
+                  <label
+                    key={opt.value}
+                    className={`flex cursor-pointer items-start gap-3 rounded-xl border-[1.5px] p-3 transition-colors ${
+                      contactPreference === opt.value
+                        ? 'border-[#0C79C1] bg-[#E8F4FD]'
+                        : 'border-[#D1D5DB] hover:border-[#93C5FD]'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="contact-preference"
+                      value={opt.value}
+                      checked={contactPreference === opt.value}
+                      onChange={() => setContactPreference(opt.value)}
+                      className="mt-1 accent-[#0C79C1]"
+                    />
+                    <span>
+                      <span className="block text-[14px] font-medium text-[#111827]">{opt.label}</span>
+                      <span className="block text-[12px] text-[#6B7280]">{opt.hint}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </section>
 
             {/* Output */}
-            {generatedUrl && (
-              <section className="flex flex-col gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-6">
-                <h2 className="text-[15px] font-semibold text-[#111827]">Your links</h2>
+            <section className="flex flex-col gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-6">
+              <div>
+                <StepHeading step={4} title="Share your form" className="mb-1" />
+                <p className="text-[12px] text-[#6B7280]">Updates automatically as you customise.</p>
+              </div>
 
-                <div>
-                  <p className="mb-1 text-[12px] font-medium text-[#6B7280]">Shareable URL</p>
-                  <div className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2">
-                    <span className="flex-1 truncate font-mono text-[12px] text-[#374151]">{generatedUrl}</span>
-                    <button
-                      type="button"
-                      onClick={() => void copyToClipboard(generatedUrl, setCopiedUrl)}
-                      className="shrink-0 rounded p-1 text-[#6B7280] hover:text-[#111827]"
-                      aria-label="Copy URL"
-                    >
-                      {copiedUrl ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                    </button>
-                  </div>
+              <div>
+                <p className="text-[13px] font-semibold text-[#374151]">Shareable URL</p>
+                <p className="mb-1.5 text-[12px] text-[#6B7280]">
+                  Send this link straight to your customers — it opens your branded form in their browser.
+                </p>
+                <div className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2">
+                  <a
+                    ref={urlTextRef}
+                    href={formUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 truncate font-mono text-[12px] text-[#0C79C1] hover:underline"
+                  >
+                    {formUrl}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => void handleCopy(formUrl, setUrlCopyStatus, urlTextRef.current)}
+                    className="shrink-0 rounded p-1 text-[#6B7280] hover:text-[#111827]"
+                    aria-label="Copy URL"
+                  >
+                    {urlCopyStatus === 'copied' ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
                 </div>
+                {urlCopyStatus === 'failed' && (
+                  <p className="mt-1 text-[12px] text-amber-700" role="alert">
+                    Automatic copy is blocked here — the link is highlighted for you, press
+                    Ctrl+C (⌘C on Mac) to copy it.
+                  </p>
+                )}
+              </div>
 
-                <div>
-                  <p className="mb-1 text-[12px] font-medium text-[#6B7280]">Embed code</p>
-                  <div className="flex items-start gap-2 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2">
-                    <pre className="flex-1 overflow-x-auto whitespace-pre-wrap font-mono text-[11px] text-[#374151]">{embedCode}</pre>
-                    <button
-                      type="button"
-                      onClick={() => void copyToClipboard(embedCode, setCopiedEmbed)}
-                      className="mt-0.5 shrink-0 rounded p-1 text-[#6B7280] hover:text-[#111827]"
-                      aria-label="Copy embed code"
-                    >
-                      {copiedEmbed ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                    </button>
-                  </div>
+              <div>
+                <p className="text-[13px] font-semibold text-[#374151]">Embed code</p>
+                <p className="mb-1.5 text-[12px] text-[#6B7280]">
+                  Shows the form on your own website. Copy this and paste it into your site — or send it
+                  to whoever manages your website for you.
+                </p>
+                <div className="flex items-start gap-2 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2">
+                  <pre ref={embedTextRef} className="flex-1 overflow-x-auto whitespace-pre-wrap font-mono text-[11px] text-[#374151]">{embedCode}</pre>
+                  <button
+                    type="button"
+                    onClick={() => void handleCopy(embedCode, setEmbedCopyStatus, embedTextRef.current)}
+                    className="mt-0.5 shrink-0 rounded p-1 text-[#6B7280] hover:text-[#111827]"
+                    aria-label="Copy embed code"
+                  >
+                    {embedCopyStatus === 'copied' ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
                 </div>
-              </section>
-            )}
+                {embedCopyStatus === 'failed' && (
+                  <p className="mt-1 text-[12px] text-amber-700" role="alert">
+                    Automatic copy is blocked here — the code is highlighted for you, press
+                    Ctrl+C (⌘C on Mac) to copy it.
+                  </p>
+                )}
+              </div>
+            </section>
           </div>
 
           {/* Preview panel */}
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-[15px] font-semibold text-[#111827]">Preview</h2>
-              {previewUrl && (
+              <div className="flex items-center gap-3">
+                <div className="flex rounded-lg border border-[#E5E7EB] bg-white p-0.5" role="group" aria-label="Preview device">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDevice('desktop')}
+                    aria-pressed={previewDevice === 'desktop'}
+                    className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors ${
+                      previewDevice === 'desktop' ? 'bg-[#0C79C1] text-white' : 'text-[#6B7280] hover:text-[#111827]'
+                    }`}
+                  >
+                    <Monitor className="h-3.5 w-3.5" aria-hidden />
+                    Desktop
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDevice('mobile')}
+                    aria-pressed={previewDevice === 'mobile'}
+                    className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors ${
+                      previewDevice === 'mobile' ? 'bg-[#0C79C1] text-white' : 'text-[#6B7280] hover:text-[#111827]'
+                    }`}
+                  >
+                    <Smartphone className="h-3.5 w-3.5" aria-hidden />
+                    Mobile
+                  </button>
+                </div>
                 <a
-                  href={previewUrl}
+                  href={formUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[13px] font-medium text-[#0C79C1] hover:underline"
                 >
                   Open in new tab →
                 </a>
-              )}
+              </div>
             </div>
 
-            <div className="relative flex-1 overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm" style={{ minHeight: '640px' }}>
-              {previewUrl
-                ? (
-                  <>
-                    <iframe
-                      ref={iframeRef}
-                      src={previewUrl}
-                      title="Form preview"
-                      className="h-full w-full"
-                      style={{ minHeight: '640px', border: 'none' }}
-                    />
-                    {/* Overlay to block interaction */}
-                    <div className="absolute inset-0" aria-hidden />
-                  </>
-                )
-                : (
-                  <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center" style={{ minHeight: '640px' }}>
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F3F4F6]">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                    </div>
-                    <p className="text-[14px] font-medium text-[#374151]">No preview yet</p>
-                    <p className="text-[13px] text-[#9CA3AF]">Set your colour and logo above, then click <strong>Generate preview</strong></p>
-                  </div>
-                )
-              }
+            <div
+              className={`flex-1 overflow-hidden rounded-2xl border border-[#E5E7EB] shadow-sm ${
+                previewDevice === 'mobile' ? 'flex justify-center bg-[#F3F4F6] py-6' : 'bg-white'
+              }`}
+              style={{ minHeight: '640px' }}
+            >
+              <iframe
+                src={withPreviewParam(previewUrl)}
+                title="Form preview"
+                className={
+                  previewDevice === 'mobile'
+                    ? 'h-[700px] w-[390px] max-w-full rounded-2xl border border-[#E5E7EB] bg-white shadow-sm'
+                    : 'h-full min-h-[640px] w-full'
+                }
+                style={{ border: previewDevice === 'mobile' ? undefined : 'none' }}
+              />
             </div>
           </div>
         </div>

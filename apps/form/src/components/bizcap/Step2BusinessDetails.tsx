@@ -1,8 +1,9 @@
 import { Controller, type Control, type UseFormTrigger } from 'react-hook-form';
 import { Search } from 'lucide-react';
 import { type Step2Data } from '../../lib/schemas';
-import { FloatingInput } from './FloatingInput';
-import { FloatingSelect } from './FloatingSelect';
+import { Field, fieldDescribedBy } from './Field';
+import { TextInput } from './TextInput';
+import { SelectInput } from './SelectInput';
 
 const INDUSTRIES = [
   { value: '', label: 'Select your industry', disabled: true },
@@ -28,12 +29,15 @@ type Step2BusinessDetailsProps = {
 
 export function Step2BusinessDetails({ control, formId, trigger }: Step2BusinessDetailsProps) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-[18px]">
       <div>
-        <h1 className="text-[26px] font-bold leading-tight text-[#111827]">
+        <div className="mb-[5px] text-[11px] font-medium uppercase tracking-[0.07em] text-[var(--brand-color)]">
+          Business details
+        </div>
+        <h1 className="text-[18px] font-medium tracking-[-0.2px] text-[#111827]">
           About your business
         </h1>
-        <p className="mt-1 text-[15px] font-normal text-[#6B7280]">
+        <p className="mt-[5px] text-[13px] leading-[1.55] text-[#6B7280]">
           Tell us a bit about your business.
         </p>
       </div>
@@ -42,20 +46,20 @@ export function Step2BusinessDetails({ control, formId, trigger }: Step2Business
         name="businessName"
         control={control}
         render={({ field, fieldState }) => (
-          <FloatingInput
-            id={`${formId}-businessName`}
-            label="Business name"
-            autoFocus
-            value={field.value}
-            onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('businessName'); }}
-            onBlur={field.onBlur}
-            error={fieldState.error?.message}
-            describedBy={`${formId}-businessName-err`}
-            autoComplete="organization"
-            iconLeft={<Search className="h-4 w-4" aria-hidden />}
-            inputPaddingLeft="pl-10"
-            labelInsetLeftClass="left-10"
-          />
+          <Field id={`${formId}-businessName`} label="Business name" error={fieldState.error?.message}>
+            <TextInput
+              id={`${formId}-businessName`}
+              placeholder="e.g. Johnson's Bakery"
+              autoFocus
+              value={field.value}
+              onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('businessName'); }}
+              onBlur={field.onBlur}
+              error={fieldState.error?.message}
+              describedBy={fieldDescribedBy(`${formId}-businessName`, { error: !!fieldState.error })}
+              autoComplete="organization"
+              iconLeft={<Search className="h-4 w-4" aria-hidden />}
+            />
+          </Field>
         )}
       />
 
@@ -63,19 +67,19 @@ export function Step2BusinessDetails({ control, formId, trigger }: Step2Business
         name="businessAddress"
         control={control}
         render={({ field, fieldState }) => (
-          <FloatingInput
-            id={`${formId}-businessAddress`}
-            label="Business address"
-            value={field.value}
-            onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('businessAddress'); }}
-            onBlur={field.onBlur}
-            error={fieldState.error?.message}
-            describedBy={`${formId}-businessAddress-err`}
-            autoComplete="street-address"
-            iconLeft={<Search className="h-4 w-4" aria-hidden />}
-            inputPaddingLeft="pl-10"
-            labelInsetLeftClass="left-10"
-          />
+          <Field id={`${formId}-businessAddress`} label="Business address" error={fieldState.error?.message}>
+            <TextInput
+              id={`${formId}-businessAddress`}
+              placeholder="Start typing your address"
+              value={field.value}
+              onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('businessAddress'); }}
+              onBlur={field.onBlur}
+              error={fieldState.error?.message}
+              describedBy={fieldDescribedBy(`${formId}-businessAddress`, { error: !!fieldState.error })}
+              autoComplete="street-address"
+              iconLeft={<Search className="h-4 w-4" aria-hidden />}
+            />
+          </Field>
         )}
       />
 
@@ -83,26 +87,26 @@ export function Step2BusinessDetails({ control, formId, trigger }: Step2Business
         name="industry"
         control={control}
         render={({ field, fieldState }) => (
-          <FloatingSelect
-            id={`${formId}-industry`}
-            label="Industry"
-            value={field.value}
-            onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('industry'); }}
-            onBlur={field.onBlur}
-            error={fieldState.error?.message}
-            describedBy={`${formId}-industry-err`}
-            alwaysFloatLabel
-          >
-            {INDUSTRIES.map((opt) => (
-              <option
-                key={opt.value || 'placeholder'}
-                value={opt.value}
-                disabled={'disabled' in opt ? opt.disabled : false}
-              >
-                {opt.label}
-              </option>
-            ))}
-          </FloatingSelect>
+          <Field id={`${formId}-industry`} label="Industry" error={fieldState.error?.message}>
+            <SelectInput
+              id={`${formId}-industry`}
+              value={field.value}
+              onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('industry'); }}
+              onBlur={field.onBlur}
+              error={fieldState.error?.message}
+              describedBy={fieldDescribedBy(`${formId}-industry`, { error: !!fieldState.error })}
+            >
+              {INDUSTRIES.map((opt) => (
+                <option
+                  key={opt.value || 'placeholder'}
+                  value={opt.value}
+                  disabled={'disabled' in opt ? opt.disabled : false}
+                >
+                  {opt.label}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
         )}
       />
     </div>
