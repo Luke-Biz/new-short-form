@@ -45,6 +45,15 @@ Rules:
 - These stay a fixed colour on purpose: error red `#991B1B` (text + errored input borders), greys (`#E5E7EB` field/card borders, `#9CA3AF` placeholders/hints/tertiary text, `#6B7280` muted text, `#111827` headings/labels/input text)
 - Labels stay dark on error - the red border + inline error message carry the error state, never the label colour
 
+## Iframe Embedding (apps/form)
+When embedded (`window.parent !== window`), the form measures its content height
+(`contentRef` + `ResizeObserver`, rAF-batched) and posts `{ type: 'bizcap-form-resize', height }`
+to the parent. The configurator's embed snippet (`buildEmbedCode`) bundles a listener
+that sets the iframe height from that message (origin-checked), so the iframe auto-sizes
+to content — no internal scrollbar, no empty gap. `height="800"` is the pre-JS fallback.
+Caveat: absolutely-positioned dropdowns (industry, ABR, Google pac-container) can be clipped
+if opened right at the iframe's bottom edge, since they don't add to content height.
+
 ## Code Style
 - TypeScript everywhere - no `.js` for components/logic, no `any`
 - `.tsx` for React components, `.ts` for utilities/types

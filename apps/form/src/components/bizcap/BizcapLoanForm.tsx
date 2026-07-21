@@ -27,6 +27,7 @@ export function BizcapLoanForm() {
   const reducedMotion = usePrefersReducedMotion();
   const formId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const [brandColor] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -154,6 +155,37 @@ export function BizcapLoanForm() {
     setAnnouncement(`Now on step ${step} of 3: ${STEP_LABELS[step - 1]}`);
   }, [step, reducedMotion]);
 
+  // When embedded in an iframe, report our content height to the parent so the
+  // embed snippet can auto-size the iframe (no internal scrollbars or empty gap).
+  useEffect(() => {
+    if (window.parent === window) return; // not embedded
+    const content = contentRef.current;
+    const root = containerRef.current;
+    if (!content || !root) return;
+
+    let frame = 0;
+    const post = () => {
+      const cs = getComputedStyle(root);
+      const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      const height = Math.ceil(content.getBoundingClientRect().height + padY);
+      window.parent.postMessage({ type: 'bizcap-form-resize', height }, '*');
+    };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(post);
+    };
+
+    schedule();
+    const ro = new ResizeObserver(schedule);
+    ro.observe(content);
+    window.addEventListener('resize', schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+      window.removeEventListener('resize', schedule);
+    };
+  }, []);
+
   const handleNext = async () => {
     if (step === 1) {
       if (!previewMode) {
@@ -228,7 +260,7 @@ export function BizcapLoanForm() {
       } as React.CSSProperties}
       className="min-h-full bg-[#F9FAFB] px-4 pb-16 pt-10"
     >
-      <div className="mx-auto w-full max-w-[600px]">
+      <div ref={contentRef} className="mx-auto w-full max-w-[600px]">
         {logoUrl === 'none'
           ? null
           : logoUrl

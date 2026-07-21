@@ -40,10 +40,31 @@ function withPreviewParam(url: string): string {
   return url.includes('?') ? `${url}&preview=1` : `${url}?preview=1`;
 }
 
-// Fixed pixel height - height="100%" collapses to 0 in many site builders
-// because the parent has no explicit height.
+// Self-contained embed: the iframe plus a small listener that auto-sizes it to
+// the form's content (the form posts its height via postMessage). height="800"
+// is the pre-JS fallback. One paste, no extra setup for the partner.
 function buildEmbedCode(url: string): string {
-  return `<iframe\n  src="${url}"\n  width="100%"\n  height="800"\n  style="border: none;"\n  title="Bizcap loan application"\n></iframe>`;
+  const origin = (() => {
+    try { return new URL(url).origin; } catch { return '*'; }
+  })();
+  return `<iframe
+  id="bizcap-form"
+  src="${url}"
+  width="100%"
+  height="800"
+  style="border: none; width: 100%;"
+  title="Bizcap loan application"
+></iframe>
+<script>
+  window.addEventListener('message', function (e) {
+    if (${origin === '*' ? 'true' : `e.origin === '${origin}'`} &&
+        e.data && e.data.type === 'bizcap-form-resize' &&
+        typeof e.data.height === 'number') {
+      var f = document.getElementById('bizcap-form');
+      if (f) f.style.height = e.data.height + 'px';
+    }
+  });
+</script>`;
 }
 
 const STORAGE_KEY = 'bizcap-configurator-v1';
