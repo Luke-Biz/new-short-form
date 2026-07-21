@@ -48,6 +48,9 @@ export const Step1Schema = z.object({
 
 export const Step2Schema = z.object({
   businessName: z.string().min(1, 'Enter your business name.'),
+  // Captured only when the applicant picks a match from the ABR lookup;
+  // stays '' for free-typed names. Never required — the lookup is an enhancement.
+  abn: z.string(),
   businessAddress: z.string().min(1, 'Enter your business address.'),
   industry: z.string().min(1, 'Select your industry.'),
 });

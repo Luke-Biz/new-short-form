@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
+import { Loader } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BizcapLogo } from './BizcapLogo';
@@ -10,6 +11,7 @@ import {
   Step3Schema, type Step3Data,
 } from '../../lib/schemas';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { submitApplication } from '../../lib/submitApplication';
 import { Step1PersonalDetails } from './Step1PersonalDetails';
 import { Step2BusinessDetails } from './Step2BusinessDetails';
 import { Step3LoanDetails } from './Step3LoanDetails';
@@ -63,8 +65,20 @@ export function BizcapLoanForm() {
     return new URLSearchParams(window.location.search).get('poweredby') !== '0';
   });
 
+  // Partner attribution from the CRM-supplied URL; forwarded to the submission
+  // Lambda, which maps them to brokerId / brokerRepId.
+  const [partnerParams] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return {
+      partnerid: p.get('partnerid') ?? undefined,
+      partnercontactid: p.get('partnercontactid') ?? undefined,
+    };
+  });
+
   const [step, setStep] = useState(1);
   const [announcement, setAnnouncement] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
 
   const step1Form = useForm<Step1Data>({
     resolver: zodResolver(Step1Schema),
@@ -77,7 +91,7 @@ export function BizcapLoanForm() {
     resolver: zodResolver(Step2Schema),
     mode: 'onBlur',
     reValidateMode: 'onChange',
-    defaultValues: { businessName: '', businessAddress: '', industry: '' },
+    defaultValues: { businessName: '', abn: '', businessAddress: '', industry: '' },
   });
 
   const step3Form = useForm<Step3Data>({
@@ -163,22 +177,36 @@ export function BizcapLoanForm() {
       setStep(3);
       return;
     }
-    if (previewMode) return;
+    if (previewMode || submitting) return;
     const valid = await step3Form.trigger();
     if (!valid) {
       requestAnimationFrame(focusFirstError);
       return;
     }
     const { monthlyRevenue: revRaw, loanAmount: loanRaw, purpose } = step3Form.getValues();
-    // eslint-disable-next-line no-console
-    console.log('Submit', {
+
+    setSubmitError(false);
+    setSubmitting(true);
+    const result = await submitApplication({
       ...step1Form.getValues(),
       ...step2Form.getValues(),
       monthlyRevenue: parseMoneyNumber(revRaw),
       loanAmount: parseMoneyNumber(loanRaw),
       purpose,
       contactPreference,
+      ...partnerParams,
     });
+
+    if (result.isSuccess && result.redirectUrl) {
+      // Full navigation to the next step (bank statements / thank-you). In an
+      // iframe this navigates the frame; the standalone link and Webflow
+      // component navigate the whole page.
+      window.location.href = result.redirectUrl;
+      return; // keep the button in its loading state through the navigation
+    }
+
+    setSubmitting(false);
+    if (!result.isSuccess) setSubmitError(true);
   };
 
   const handleBack = () => {
@@ -186,7 +214,7 @@ export function BizcapLoanForm() {
   };
 
   const percent = step === 1 ? 33 : step === 2 ? 66 : 100;
-  const ctaDisabled = previewMode && step === 3;
+  const ctaDisabled = (previewMode && step === 3) || submitting;
 
   return (
     <div
@@ -252,26 +280,42 @@ export function BizcapLoanForm() {
             }}
           >
             {step === 1 ? <Step1PersonalDetails control={step1Form.control} formId={formId} trigger={step1Form.trigger} /> : null}
-            {step === 2 ? <Step2BusinessDetails control={step2Form.control} formId={formId} trigger={step2Form.trigger} /> : null}
+            {step === 2 ? <Step2BusinessDetails control={step2Form.control} formId={formId} trigger={step2Form.trigger} setValue={step2Form.setValue} /> : null}
             {step === 3 ? <Step3LoanDetails control={step3Form.control} formId={formId} trigger={step3Form.trigger} /> : null}
+
+            {step === 3 && submitError ? (
+              <p className="mt-4 text-[13px] text-[#991B1B]" role="alert">
+                Something went wrong submitting your application. Please check your connection and try again.
+              </p>
+            ) : null}
 
             <button
               type="submit"
               disabled={ctaDisabled}
+              aria-busy={submitting}
               className={[
                 'mt-5 flex w-full items-center justify-center gap-2 rounded-[calc(var(--brand-radius)_+_2px)] px-4 py-3 text-[15px] font-medium',
                 'transition-[background-color,transform,opacity] duration-150 active:scale-[0.99]',
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-color)]',
-                ctaDisabled
-                  ? 'cursor-not-allowed bg-[#D1D5DB] text-[#9CA3AF]'
-                  : stepComplete
-                    ? 'bg-[var(--brand-color)] text-white hover:bg-[var(--brand-hover)]'
-                    : 'bg-[var(--brand-color)] text-white opacity-60 hover:opacity-75',
+                submitting
+                  ? 'cursor-wait bg-[var(--brand-color)] text-white opacity-80'
+                  : ctaDisabled
+                    ? 'cursor-not-allowed bg-[#D1D5DB] text-[#9CA3AF]'
+                    : stepComplete
+                      ? 'bg-[var(--brand-color)] text-white hover:bg-[var(--brand-hover)]'
+                      : 'bg-[var(--brand-color)] text-white opacity-60 hover:opacity-75',
               ].join(' ')}
             >
-              {step === 3
-                ? previewMode ? 'Preview mode — submissions disabled' : 'Submit application'
-                : 'Next'}
+              {submitting ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin" aria-hidden />
+                  Submitting…
+                </>
+              ) : step === 3 ? (
+                previewMode ? 'Preview mode — submissions disabled' : 'Submit application'
+              ) : (
+                'Next'
+              )}
             </button>
 
             {step > 1 ? (

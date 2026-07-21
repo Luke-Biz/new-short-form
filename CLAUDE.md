@@ -33,6 +33,11 @@ Webflow components render in a Shadow DOM:
 The form reads URL params on mount (`useState` lazy initializer + `URLSearchParams`):
 - `?color=%23FF6B00` — sets `--brand-color` (default `#0C79C1`) plus derived vars as inline CSS variables on the root div: `--brand-shadow` (12% transparent tint, focus rings), `--brand-hover` (85% mix toward black, button hover), `--brand-light` (8% mix toward white, selected-tile/badge background)
 - `?logo=<url>` — renders an `<img>` above the card instead of the inline `BizcapLogo` SVG
+- `?radius=<0-24>` — sets `--brand-radius` (default 8px) on controls; button/card radii derive via `calc(... + 2px/+6px)`. Clamped 0–24
+- `?poweredby=0` — hides the "Powered by Bizcap" credit line below the card (shown by default)
+- `?contact=broker` — captured into the submission payload as "Call Broker" (default "Call Client"); no visible UI
+- `?preview=1` — configurator-only: free step navigation without validation, submit disabled. Only the configurator iframe sets it; never generated links
+- `?partnerid=` / `?partnercontactid=` — CRM attribution, forwarded verbatim into the submission payload (Lambda maps them to `brokerId` / `brokerRepId`); no visible UI
 
 Rules:
 - All brand-blue styling must use the `--brand-*` vars — never hardcode `#0C79C1` in components (the only exceptions: the default fallback value and the `BizcapLogo` SVG fill, which stays Bizcap blue)
@@ -56,6 +61,11 @@ Rules:
 - Step data accumulates; submitted only on the final step
 - Never reset earlier step data when navigating back
 - On failed validation, focus the first invalid field via `aria-invalid` scan inside `containerRef`
+
+## External Lookups (apps/form, Step 2 — AU only)
+Both are progressive enhancements — if the API errors, returns nothing, or is unavailable, the field stays plain text and never blocks submission. Both are built as React components (no `document.getElementById`, so Shadow-DOM safe).
+- **Business name → ABR** (`lib/abrLookup.ts` + `BusinessNameAutocomplete.tsx`): searches the Australian Business Register via a Bizcap Lambda (`fetchCompany`, CORS `*`). Numeric query → by ABN, else by name. Picking a match sets the name and captures the verified ABN into the optional `abn` field (flows into the submit payload; cleared if the name is edited by hand). `setValue` is passed from `BizcapLoanForm` for this.
+- **Business address → Google Places** (`lib/googleMaps.ts` + `AddressAutocomplete.tsx`): loads the Maps JS Places library on demand, binds `google.maps.places.Autocomplete` (AU-restricted, `formatted_address` only) to the input. Google renders its own `.pac-container` in the light DOM, so it works inside the Webflow shadow component. Key: public referrer-restricted client key, `VITE_GOOGLE_MAPS_API_KEY` for Vite/Vercel with a committed fallback for the Webflow bundle (which doesn't read Vite env). Minimal typings in `src/types/google-maps.d.ts` (no `@types/google.maps` dep).
 
 ## UI/UX Rules — Multi-Step Forms
 
@@ -96,9 +106,11 @@ Rules:
 Single 600px max-width container, top-aligned on a `#F9FAFB` page background at every width (no vertical centering — card height changes between steps must not make it jump). Card is a `1px #E5E7EB` border + 14px radius; buttons sit in the natural document flow (no pinned footer / inner scroll region). Custom breakpoints via arbitrary values: 360px (purpose grid 2→4 columns), 480px (name row stacks below, side-by-side above; progress label collapses to "N / 3" below). No horizontal scroll from 320px up.
 
 ## Submission
-- Loading state + disabled Submit button while the API call is in flight
-- Success: confirmation state, not an alert; Error: friendly message above the button
+- Posts JSON to the AU Lambda (`submitCustomApplyFormAU`) via `lib/submitApplication.ts` (`VITE_SUBMIT_URL` override + committed fallback for the Webflow bundle). The Lambda creates the Bizmate lead and returns `{ isSuccess, redirectUrl, leadId }`
+- On success the form navigates to `redirectUrl` (bank statements / thank-you). On failure it shows a friendly inline error above the button and stays on the form
+- Loading state: Submit button disabled + spinner + "Submitting…" while in flight; `previewMode` also disables submit
 - Never expose raw API errors to the user
+- Payload keys: firstName, lastName, email, phone, consent, businessName, abn, businessAddress, industry, monthlyRevenue (number), loanAmount (number), purpose, contactPreference ("Call Client"|"Call Broker"), partnerid, partnercontactid
 
 ## What NOT to Do
 - Do not use `any` in TypeScript

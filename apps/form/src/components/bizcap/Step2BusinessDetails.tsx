@@ -1,9 +1,9 @@
-import { Controller, type Control, type UseFormTrigger } from 'react-hook-form';
-import { Search } from 'lucide-react';
+import { Controller, type Control, type UseFormTrigger, type UseFormSetValue } from 'react-hook-form';
 import { type Step2Data } from '../../lib/schemas';
 import { Field, fieldDescribedBy } from './Field';
-import { TextInput } from './TextInput';
 import { SelectInput } from './SelectInput';
+import { BusinessNameAutocomplete } from './BusinessNameAutocomplete';
+import { AddressAutocomplete } from './AddressAutocomplete';
 
 const INDUSTRIES = [
   { value: 'retail', label: 'Retail' },
@@ -24,9 +24,10 @@ type Step2BusinessDetailsProps = {
   control: Control<Step2Data>;
   formId: string;
   trigger: UseFormTrigger<Step2Data>;
+  setValue: UseFormSetValue<Step2Data>;
 };
 
-export function Step2BusinessDetails({ control, formId, trigger }: Step2BusinessDetailsProps) {
+export function Step2BusinessDetails({ control, formId, trigger, setValue }: Step2BusinessDetailsProps) {
   return (
     <div className="flex flex-col gap-[18px]">
       <div>
@@ -46,17 +47,16 @@ export function Step2BusinessDetails({ control, formId, trigger }: Step2Business
         control={control}
         render={({ field, fieldState }) => (
           <Field id={`${formId}-businessName`} label="Business name" error={fieldState.error?.message}>
-            <TextInput
+            <BusinessNameAutocomplete
               id={`${formId}-businessName`}
-              placeholder="e.g. Johnson's Bakery"
+              placeholder="Start typing your business name"
               autoFocus
               value={field.value}
               onChange={(v) => { field.onChange(v); if (fieldState.invalid) trigger('businessName'); }}
+              onAbnChange={(abn) => setValue('abn', abn)}
               onBlur={field.onBlur}
               error={fieldState.error?.message}
               describedBy={fieldDescribedBy(`${formId}-businessName`, { error: !!fieldState.error })}
-              autoComplete="organization"
-              iconLeft={<Search className="h-4 w-4" aria-hidden />}
             />
           </Field>
         )}
@@ -67,7 +67,7 @@ export function Step2BusinessDetails({ control, formId, trigger }: Step2Business
         control={control}
         render={({ field, fieldState }) => (
           <Field id={`${formId}-businessAddress`} label="Business address" error={fieldState.error?.message}>
-            <TextInput
+            <AddressAutocomplete
               id={`${formId}-businessAddress`}
               placeholder="Start typing your address"
               value={field.value}
@@ -75,8 +75,6 @@ export function Step2BusinessDetails({ control, formId, trigger }: Step2Business
               onBlur={field.onBlur}
               error={fieldState.error?.message}
               describedBy={fieldDescribedBy(`${formId}-businessAddress`, { error: !!fieldState.error })}
-              autoComplete="street-address"
-              iconLeft={<Search className="h-4 w-4" aria-hidden />}
             />
           </Field>
         )}
