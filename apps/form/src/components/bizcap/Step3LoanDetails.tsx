@@ -126,7 +126,7 @@ export function Step3LoanDetails({ control, formId, trigger }: Step3LoanDetailsP
                       }
                     }}
                     className={[
-                      'flex h-full min-h-[64px] flex-col items-center justify-center gap-1 rounded-[8px] border-[1.5px] px-1.5 py-2.5 text-center text-[13px]',
+                      'flex h-full min-h-[64px] flex-col items-center justify-center gap-1 rounded-[var(--brand-radius)] border-[1.5px] px-1.5 py-2.5 text-center text-[13px]',
                       'transition-[border-color,background-color,color] duration-[130ms]',
                       'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-color)]',
                       selected

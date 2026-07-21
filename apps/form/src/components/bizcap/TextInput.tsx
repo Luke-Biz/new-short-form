@@ -6,7 +6,7 @@ import type { ComponentProps, ReactNode } from 'react';
  */
 export function inputClass(error: boolean, extra = ''): string {
   return [
-    'h-[44px] w-full rounded-[8px] border-[1.5px] bg-white px-3 text-[16px] text-[#111827]',
+    'h-[44px] w-full rounded-[var(--brand-radius)] border-[1.5px] bg-white px-3 text-[16px] text-[#111827]',
     'outline-none transition-[border-color] duration-[130ms] placeholder:text-[#9CA3AF]',
     error
       ? 'border-[#991B1B] focus:border-[#991B1B] focus:shadow-[0_0_0_3px_rgba(153,27,27,0.12)]'

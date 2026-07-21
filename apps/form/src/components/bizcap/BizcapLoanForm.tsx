@@ -49,6 +49,20 @@ export function BizcapLoanForm() {
     return params.get('contact') === 'broker' ? 'Call Broker' : 'Call Client';
   });
 
+  // Corner radius for controls (px). Default 8 preserves the canonical look;
+  // clamped 0–24 so partners can't break the layout. Button/card derive from it.
+  const [brandRadius] = useState(() => {
+    const raw = new URLSearchParams(window.location.search).get('radius');
+    if (raw == null) return 8;
+    const n = parseInt(raw, 10);
+    return Number.isNaN(n) ? 8 : Math.max(0, Math.min(24, n));
+  });
+
+  // "Powered by Bizcap" attribution shows by default; partners opt out via poweredby=0.
+  const [showPoweredBy] = useState(() => {
+    return new URLSearchParams(window.location.search).get('poweredby') !== '0';
+  });
+
   const [step, setStep] = useState(1);
   const [announcement, setAnnouncement] = useState('');
 
@@ -182,6 +196,7 @@ export function BizcapLoanForm() {
         '--brand-shadow': 'color-mix(in srgb, var(--brand-color) 12%, transparent)',
         '--brand-hover': 'color-mix(in srgb, var(--brand-color) 85%, black)',
         '--brand-light': 'color-mix(in srgb, var(--brand-color) 8%, white)',
+        '--brand-radius': `${brandRadius}px`,
       } as React.CSSProperties}
       className="min-h-full bg-[#F9FAFB] px-4 pb-16 pt-10"
     >
@@ -224,7 +239,9 @@ export function BizcapLoanForm() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[14px] border border-[#E5E7EB] bg-white">
+        {/* No overflow-hidden here — the industry dropdown panel must be able
+            to extend past the card edge */}
+        <div className="rounded-[calc(var(--brand-radius)_+_6px)] border border-[#E5E7EB] bg-white">
           <form
             className="px-6 py-6"
             aria-label="Business loan application"
@@ -242,7 +259,7 @@ export function BizcapLoanForm() {
               type="submit"
               disabled={ctaDisabled}
               className={[
-                'mt-5 flex w-full items-center justify-center gap-2 rounded-[10px] px-4 py-3 text-[15px] font-medium',
+                'mt-5 flex w-full items-center justify-center gap-2 rounded-[calc(var(--brand-radius)_+_2px)] px-4 py-3 text-[15px] font-medium',
                 'transition-[background-color,transform,opacity] duration-150 active:scale-[0.99]',
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-color)]',
                 ctaDisabled
@@ -268,6 +285,20 @@ export function BizcapLoanForm() {
             ) : null}
           </form>
         </div>
+
+        {showPoweredBy ? (
+          <p className="mt-5 text-center text-[12px] text-[#9CA3AF]">
+            Powered by{' '}
+            <a
+              href="https://www.bizcap.com.au"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-[#6B7280] underline underline-offset-2 hover:text-[#111827]"
+            >
+              Bizcap
+            </a>
+          </p>
+        ) : null}
       </div>
     </div>
   );

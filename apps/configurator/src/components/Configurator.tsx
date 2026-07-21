@@ -11,14 +11,23 @@ const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string;
 
 const DEFAULT_COLOR = '#0C79C1';
+const DEFAULT_RADIUS = 8;
 
 type ContactPreference = 'client' | 'broker';
 
-function buildFormUrl(color: string, logoUrl: string, contact: ContactPreference): string {
+function buildFormUrl(
+  color: string,
+  logoUrl: string,
+  contact: ContactPreference,
+  radius: number,
+  showPoweredBy: boolean,
+): string {
   const params = new URLSearchParams();
   if (color && color !== DEFAULT_COLOR) params.set('color', color);
   if (logoUrl) params.set('logo', logoUrl);
   if (contact === 'broker') params.set('contact', 'broker');
+  if (radius !== DEFAULT_RADIUS) params.set('radius', String(radius));
+  if (!showPoweredBy) params.set('poweredby', '0');
   const qs = params.toString();
   return qs ? `${FORM_URL}?${qs}` : FORM_URL;
 }
@@ -41,6 +50,8 @@ type SavedConfig = {
   logoUrl?: string;
   previewDevice?: 'desktop' | 'mobile';
   contactPreference?: ContactPreference;
+  radius?: number;
+  showPoweredBy?: boolean;
 };
 
 // localStorage can throw when embedded with third-party storage blocked
@@ -89,6 +100,12 @@ export function Configurator() {
   const [contactPreference, setContactPreference] = useState<ContactPreference>(
     saved.contactPreference === 'broker' ? 'broker' : 'client',
   );
+  const [radius, setRadius] = useState<number>(
+    typeof saved.radius === 'number' && saved.radius >= 0 && saved.radius <= 24
+      ? saved.radius
+      : DEFAULT_RADIUS,
+  );
+  const [showPoweredBy, setShowPoweredBy] = useState<boolean>(saved.showPoweredBy !== false);
   const [urlCopyStatus, setUrlCopyStatus] = useState<CopyStatus>('idle');
   const [embedCopyStatus, setEmbedCopyStatus] = useState<CopyStatus>('idle');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +114,7 @@ export function Configurator() {
 
   // Link + embed code update instantly; the iframe reload is debounced so
   // colour-picker dragging and typing don't cause a reload storm.
-  const formUrl = buildFormUrl(color, logoUrl, contactPreference);
+  const formUrl = buildFormUrl(color, logoUrl, contactPreference, radius, showPoweredBy);
   const previewUrl = useDebouncedValue(formUrl, 600);
 
   const lowContrast = contrastRatioWithWhite(color) < MIN_UI_CONTRAST;
@@ -112,12 +129,12 @@ export function Configurator() {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ color, logoUrl, previewDevice, contactPreference }),
+        JSON.stringify({ color, logoUrl, previewDevice, contactPreference, radius, showPoweredBy }),
       );
     } catch {
       // storage unavailable — skip persistence
     }
-  }, [color, logoUrl, previewDevice, contactPreference]);
+  }, [color, logoUrl, previewDevice, contactPreference, radius]);
 
   // Validate pasted logo URLs by actually loading the image once typing settles.
   // Only URLs that load become the logo, so links never carry a broken image.
@@ -211,6 +228,8 @@ export function Configurator() {
     setHexInput(DEFAULT_COLOR);
     setPreviewDevice('desktop');
     setContactPreference('client');
+    setRadius(DEFAULT_RADIUS);
+    setShowPoweredBy(true);
     clearLogo();
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -279,7 +298,7 @@ export function Configurator() {
 
             {/* Brand colour */}
             <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6">
-              <StepHeading step={1} title="Choose your colour" />
+              <StepHeading step={1} title="Colour & style" />
               <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[#E5E7EB]">
                   <input
@@ -347,6 +366,29 @@ export function Configurator() {
                   </p>
                 </div>
               )}
+
+              <div className="mt-5">
+                <div className="mb-2 flex items-center justify-between">
+                  <label htmlFor="radius-slider" className="text-[13px] font-medium text-[#374151]">
+                    Corner roundness
+                  </label>
+                  <span className="text-[12px] tabular-nums text-[#6B7280]">{radius}px</span>
+                </div>
+                <input
+                  id="radius-slider"
+                  type="range"
+                  min={0}
+                  max={24}
+                  step={1}
+                  value={radius}
+                  onChange={(e) => setRadius(Number(e.target.value))}
+                  className="w-full accent-[#0C79C1]"
+                />
+                <div className="mt-1 flex justify-between text-[11px] text-[#9CA3AF]">
+                  <span>Square</span>
+                  <span>Rounded</span>
+                </div>
+              </div>
             </section>
 
             {/* Logo */}
@@ -450,6 +492,32 @@ export function Configurator() {
                   </button>
                 </div>
               )}
+
+              <label className="mt-4 flex cursor-pointer items-center justify-between gap-3 border-t border-[#F3F4F6] pt-4">
+                <span>
+                  <span className="block text-[13px] font-medium text-[#374151]">
+                    Show &ldquo;Powered by Bizcap&rdquo;
+                  </span>
+                  <span className="block text-[12px] text-[#6B7280]">
+                    A small credit line below the form
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={showPoweredBy}
+                  onClick={() => setShowPoweredBy((v) => !v)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                    showPoweredBy ? 'bg-[#0C79C1]' : 'bg-[#D1D5DB]'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                      showPoweredBy ? 'translate-x-[22px]' : 'translate-x-[2px]'
+                    }`}
+                  />
+                </button>
+              </label>
             </section>
 
             {/* Contact preference */}

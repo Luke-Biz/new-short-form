@@ -6,7 +6,6 @@ import { TextInput } from './TextInput';
 import { SelectInput } from './SelectInput';
 
 const INDUSTRIES = [
-  { value: '', label: 'Select your industry', disabled: true },
   { value: 'retail', label: 'Retail' },
   { value: 'hospitality', label: 'Hospitality' },
   { value: 'construction', label: 'Construction' },
@@ -95,17 +94,9 @@ export function Step2BusinessDetails({ control, formId, trigger }: Step2Business
               onBlur={field.onBlur}
               error={fieldState.error?.message}
               describedBy={fieldDescribedBy(`${formId}-industry`, { error: !!fieldState.error })}
-            >
-              {INDUSTRIES.map((opt) => (
-                <option
-                  key={opt.value || 'placeholder'}
-                  value={opt.value}
-                  disabled={'disabled' in opt ? opt.disabled : false}
-                >
-                  {opt.label}
-                </option>
-              ))}
-            </SelectInput>
+              placeholder="Select your industry"
+              options={INDUSTRIES}
+            />
           </Field>
         )}
       />

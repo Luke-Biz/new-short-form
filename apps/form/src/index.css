@@ -54,7 +54,7 @@ input:-webkit-autofill:focus {
   width: 100% !important;
   height: 44px !important;
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: var(--brand-radius, 8px);
   border: 1.5px solid #e5e7eb;
   background: #fff;
   color: #111827;
@@ -100,13 +100,13 @@ input:-webkit-autofill:focus {
   background: #fff;
   border: 1.5px solid #e5e7eb;
   border-right: 1px solid #e5e7eb;
-  border-radius: 7px 0 0 7px;
+  border-radius: calc(var(--brand-radius, 8px) - 1px) 0 0 calc(var(--brand-radius, 8px) - 1px);
 }
 
 .bizcap-phone-field
   .bizcap-react-tel.react-tel-input
   .flag-dropdown.open {
-  border-radius: 7px 0 0 0;
+  border-radius: calc(var(--brand-radius, 8px) - 1px) 0 0 0;
 }
 
 .bizcap-phone-field .bizcap-react-tel.react-tel-input .selected-flag {
@@ -128,7 +128,7 @@ input:-webkit-autofill:focus {
 .bizcap-phone-field .bizcap-react-tel.react-tel-input .country-list {
   z-index: 20;
   margin-top: 4px;
-  border-radius: 8px;
+  border-radius: var(--brand-radius, 8px);
   border: 1.5px solid #e5e7eb;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   max-height: 220px;
@@ -140,7 +140,7 @@ input:-webkit-autofill:focus {
 }
 
 .bizcap-phone-field .bizcap-react-tel.react-tel-input .country-list .search {
-  border-radius: 8px;
+  border-radius: var(--brand-radius, 8px);
   margin: 8px;
   width: calc(100% - 16px);
 }
