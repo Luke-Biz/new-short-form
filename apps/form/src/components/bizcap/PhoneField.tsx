@@ -1,6 +1,6 @@
 import PhoneInput from 'react-phone-input-2';
 
-/** AU mobiles: 4XX XXX XXX — replaces library default `(..) .... ....`. */
+/** AU mobiles: 4XX XXX XXX - replaces library default `(..) .... ....`. */
 const PHONE_MASKS_AU = { au: '... ... ...' } as const;
 
 export type PhoneFieldProps = {

@@ -8,7 +8,7 @@ export async function copyText(text: string): Promise<boolean> {
       await navigator.clipboard.writeText(text);
       return true;
     } catch {
-      // Blocked (permissions policy / insecure context) — try the legacy path.
+      // Blocked (permissions policy / insecure context) - try the legacy path.
     }
   }
 

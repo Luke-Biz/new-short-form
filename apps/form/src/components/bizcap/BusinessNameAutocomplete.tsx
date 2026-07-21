@@ -24,7 +24,7 @@ const DEBOUNCE_MS = 400;
 /**
  * Business name field with ABR autocomplete. An editable combobox (ARIA 1.2
  * autocomplete-list pattern): the input keeps focus, results are highlighted
- * via aria-activedescendant. The lookup is a progressive enhancement — the
+ * via aria-activedescendant. The lookup is a progressive enhancement - the
  * field works as plain text if the API is slow, errors, or finds nothing, and
  * never blocks submission.
  */
@@ -47,7 +47,7 @@ export function BusinessNameAutocomplete({
   const listRef = useRef<HTMLUListElement>(null);
   const listboxId = `${id}-listbox`;
 
-  // The value we just committed from a pick — suppresses a re-search for it.
+  // The value we just committed from a pick - suppresses a re-search for it.
   const justSelected = useRef<string | null>(null);
   const debounceTimer = useRef<number | undefined>(undefined);
   const abortRef = useRef<AbortController | null>(null);
@@ -171,13 +171,13 @@ export function BusinessNameAutocomplete({
         >
           {status === 'error' ? (
             <li className="px-3 py-2 text-[13px] text-[#6B7280]">
-              Lookup unavailable — just type your business name.
+              Lookup unavailable - just type your business name.
             </li>
           ) : status === 'loading' && !results.length ? (
             <li className="px-3 py-2 text-[13px] text-[#6B7280]">Searching…</li>
           ) : results.length === 0 ? (
             <li className="px-3 py-2 text-[13px] text-[#6B7280]">
-              No matches — type your business name to continue.
+              No matches - type your business name to continue.
             </li>
           ) : (
             results.map((r, i) => {

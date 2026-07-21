@@ -39,7 +39,7 @@ export function BizcapLoanForm() {
   });
 
   // Configurator preview: free step navigation, submission disabled.
-  // Only the configurator's iframe carries this param — never generated links.
+  // Only the configurator's iframe carries this param - never generated links.
   const [previewMode] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('preview') === '1';
@@ -102,7 +102,7 @@ export function BizcapLoanForm() {
   });
 
   // Rough completeness mirror of each step's schema. Drives the CTA's
-  // "inactive" look only — the button stays clickable so a click still runs
+  // "inactive" look only - the button stays clickable so a click still runs
   // full validation and focuses the first error.
   const s1 = step1Form.watch();
   const s2 = step2Form.watch();
@@ -241,7 +241,7 @@ export function BizcapLoanForm() {
             <span className="text-[12px] font-medium text-[#6B7280]">
               <span className="min-[480px]:hidden">{step} / 3</span>
               <span className="hidden min-[480px]:inline">
-                Step {step} of 3 — {STEP_LABELS[step - 1]}
+                Step {step} of 3 - {STEP_LABELS[step - 1]}
               </span>
             </span>
             <span className="text-[12px] text-[#9CA3AF]" aria-hidden="true">
@@ -253,7 +253,7 @@ export function BizcapLoanForm() {
             aria-valuemin={1}
             aria-valuemax={3}
             aria-valuenow={step}
-            aria-label={`Step ${step} of 3 — ${STEP_LABELS[step - 1]}`}
+            aria-label={`Step ${step} of 3 - ${STEP_LABELS[step - 1]}`}
             className="relative h-[3px] rounded-[2px] bg-[#E5E7EB]"
           >
             <div
@@ -267,7 +267,7 @@ export function BizcapLoanForm() {
           </div>
         </div>
 
-        {/* No overflow-hidden here — the industry dropdown panel must be able
+        {/* No overflow-hidden here - the industry dropdown panel must be able
             to extend past the card edge */}
         <div className="rounded-[calc(var(--brand-radius)_+_6px)] border border-[#E5E7EB] bg-white">
           <form
@@ -312,7 +312,7 @@ export function BizcapLoanForm() {
                   Submitting…
                 </>
               ) : step === 3 ? (
-                previewMode ? 'Preview mode — submissions disabled' : 'Submit application'
+                previewMode ? 'Preview mode - submissions disabled' : 'Submit application'
               ) : (
                 'Next'
               )}

@@ -18,7 +18,7 @@ export type AddressAutocompleteProps = {
  *
  * Google renders its own suggestions dropdown (.pac-container) in the light
  * DOM, so it works even inside the Webflow shadow component. A progressive
- * enhancement — if the Maps script fails to load, the field stays a plain text
+ * enhancement - if the Maps script fails to load, the field stays a plain text
  * input and never blocks submission.
  */
 export function AddressAutocomplete({
@@ -53,7 +53,7 @@ export function AddressAutocomplete({
         });
       })
       .catch(() => {
-        // Maps unavailable — the plain input below still works as free text.
+        // Maps unavailable - the plain input below still works as free text.
       });
 
     return () => {

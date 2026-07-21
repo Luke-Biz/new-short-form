@@ -1,7 +1,7 @@
 /**
  * Loads the Google Maps JS API (Places library) once, on demand.
  *
- * The key is a public, HTTP-referrer-restricted client key — safe to ship in
+ * The key is a public, HTTP-referrer-restricted client key - safe to ship in
  * client bundles (that is the intended design for Maps JS keys). Keep it
  * referrer- and API-restricted in the Google Cloud Console. Vite/Vercel can
  * override it via VITE_GOOGLE_MAPS_API_KEY; the literal fallback is what the

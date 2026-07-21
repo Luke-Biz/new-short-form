@@ -32,12 +32,12 @@ function buildFormUrl(
   return qs ? `${FORM_URL}?${qs}` : FORM_URL;
 }
 
-/** Only the in-page preview iframe gets this — generated links never carry it. */
+/** Only the in-page preview iframe gets this - generated links never carry it. */
 function withPreviewParam(url: string): string {
   return url.includes('?') ? `${url}&preview=1` : `${url}?preview=1`;
 }
 
-// Fixed pixel height — height="100%" collapses to 0 in many site builders
+// Fixed pixel height - height="100%" collapses to 0 in many site builders
 // because the parent has no explicit height.
 function buildEmbedCode(url: string): string {
   return `<iframe\n  src="${url}"\n  width="100%"\n  height="800"\n  style="border: none;"\n  title="Bizcap loan application"\n></iframe>`;
@@ -55,7 +55,7 @@ type SavedConfig = {
 };
 
 // localStorage can throw when embedded with third-party storage blocked
-// (e.g. the CRM iframe) — persistence is best-effort.
+// (e.g. the CRM iframe) - persistence is best-effort.
 function loadSavedConfig(): SavedConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -89,7 +89,7 @@ export function Configurator() {
 
   const [color, setColor] = useState(savedColor);
   const [hexInput, setHexInput] = useState(savedColor);
-  const [logoUrl, setLogoUrl] = useState(saved.logoUrl ?? ''); // validated — only URLs that actually loaded an image
+  const [logoUrl, setLogoUrl] = useState(saved.logoUrl ?? ''); // validated - only URLs that actually loaded an image
   const [logoUrlInput, setLogoUrlInput] = useState(saved.logoUrl ?? '');
   const [logoCheckStatus, setLogoCheckStatus] = useState<'idle' | 'checking' | 'error'>('idle');
   const [uploading, setUploading] = useState(false);
@@ -132,7 +132,7 @@ export function Configurator() {
         JSON.stringify({ color, logoUrl, previewDevice, contactPreference, radius, showPoweredBy }),
       );
     } catch {
-      // storage unavailable — skip persistence
+      // storage unavailable - skip persistence
     }
   }, [color, logoUrl, previewDevice, contactPreference, radius]);
 
@@ -234,7 +234,7 @@ export function Configurator() {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
-      // storage unavailable — nothing to clear
+      // storage unavailable - nothing to clear
     }
   };
 
@@ -261,7 +261,7 @@ export function Configurator() {
           <div>
             <h1 className="text-[18px] font-bold text-[#111827]">Form Configurator</h1>
             <p className="text-[13px] text-[#6B7280]">
-              Brand the application form with your colours and logo, then share your link — takes about a minute
+              Brand the application form with your colours and logo, then share your link - takes about a minute
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -334,7 +334,7 @@ export function Configurator() {
               </div>
               {hexInvalid && (
                 <p className="mt-2 text-[12px] text-[#DC2626]" role="alert">
-                  That doesn&apos;t look like a valid colour code — it should be 6 characters, like #0C79C1.
+                  That doesn&apos;t look like a valid colour code - it should be 6 characters, like #0C79C1.
                 </p>
               )}
               <div className="mt-3 flex flex-wrap gap-2">
@@ -361,7 +361,7 @@ export function Configurator() {
                 >
                   <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
                   <p className="text-[12px] leading-snug text-amber-800">
-                    This colour may be hard to read — buttons on the form use white text.
+                    This colour may be hard to read - buttons on the form use white text.
                     A darker shade will be easier for your customers.
                   </p>
                 </div>
@@ -430,7 +430,7 @@ export function Configurator() {
                 <span className="text-[13px] text-[#6B7280]">
                   {uploading ? 'Uploading…' : 'Drag & drop or click to upload'}
                 </span>
-                <span className="text-[12px] text-[#9CA3AF]">PNG, JPG, SVG — max 2MB</span>
+                <span className="text-[12px] text-[#9CA3AF]">PNG, JPG, SVG - max 2MB</span>
               </div>
 
               {/* URL input */}
@@ -462,7 +462,7 @@ export function Configurator() {
               )}
               {logoCheckStatus === 'error' && (
                 <p className="mt-2 text-[12px] text-[#DC2626]" role="alert">
-                  We couldn&apos;t load an image from that link — check the address, or upload the file instead.
+                  We couldn&apos;t load an image from that link - check the address, or upload the file instead.
                 </p>
               )}
               {uploadError && (
@@ -574,7 +574,7 @@ export function Configurator() {
               <div>
                 <p className="text-[13px] font-semibold text-[#374151]">Shareable URL</p>
                 <p className="mb-1.5 text-[12px] text-[#6B7280]">
-                  Send this link straight to your customers — it opens your branded form in their browser.
+                  Send this link straight to your customers - it opens your branded form in their browser.
                 </p>
                 <div className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2">
                   <a
@@ -597,7 +597,7 @@ export function Configurator() {
                 </div>
                 {urlCopyStatus === 'failed' && (
                   <p className="mt-1 text-[12px] text-amber-700" role="alert">
-                    Automatic copy is blocked here — the link is highlighted for you, press
+                    Automatic copy is blocked here - the link is highlighted for you, press
                     Ctrl+C (⌘C on Mac) to copy it.
                   </p>
                 )}
@@ -606,7 +606,7 @@ export function Configurator() {
               <div>
                 <p className="text-[13px] font-semibold text-[#374151]">Embed code</p>
                 <p className="mb-1.5 text-[12px] text-[#6B7280]">
-                  Shows the form on your own website. Copy this and paste it into your site — or send it
+                  Shows the form on your own website. Copy this and paste it into your site - or send it
                   to whoever manages your website for you.
                 </p>
                 <div className="flex items-start gap-2 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2">
@@ -622,7 +622,7 @@ export function Configurator() {
                 </div>
                 {embedCopyStatus === 'failed' && (
                   <p className="mt-1 text-[12px] text-amber-700" role="alert">
-                    Automatic copy is blocked here — the code is highlighted for you, press
+                    Automatic copy is blocked here - the code is highlighted for you, press
                     Ctrl+C (⌘C on Mac) to copy it.
                   </p>
                 )}

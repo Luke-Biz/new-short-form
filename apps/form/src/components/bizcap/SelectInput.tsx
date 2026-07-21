@@ -16,7 +16,7 @@ export type SelectInputProps = {
 };
 
 /**
- * Custom select — the native <select> popup is OS-rendered and can't be
+ * Custom select - the native <select> popup is OS-rendered and can't be
  * styled to match the form. ARIA 1.2 select-only combobox pattern: the
  * trigger button keeps focus, options are highlighted via
  * aria-activedescendant (never focused), so blur/focus handling stays simple

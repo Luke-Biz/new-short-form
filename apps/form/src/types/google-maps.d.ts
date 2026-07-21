@@ -1,4 +1,4 @@
-// Minimal Google Maps JS Places typings — only the surface we use, to avoid a
+// Minimal Google Maps JS Places typings - only the surface we use, to avoid a
 // full @types/google.maps dependency.
 declare namespace google.maps {
   interface MapsEventListener {

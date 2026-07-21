@@ -41,7 +41,7 @@ export function Step3LoanDetails({ control, formId, trigger }: Step3LoanDetailsP
         </div>
         <h1 className="text-[18px] font-medium tracking-[-0.2px] text-[#111827]">Your loan</h1>
         <p className="mt-[5px] text-[13px] leading-[1.55] text-[#6B7280]">
-          Almost done — tell us what you need.
+          Almost done - tell us what you need.
         </p>
       </div>
 

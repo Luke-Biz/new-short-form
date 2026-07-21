@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from 'react';
 
 /**
  * Canonical input frame: 44px tall, 1.5px border, 8px radius, 16px text.
- * The error border must survive focus — the whole class set branches on error.
+ * The error border must survive focus - the whole class set branches on error.
  */
 export function inputClass(error: boolean, extra = ''): string {
   return [

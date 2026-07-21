@@ -11,7 +11,7 @@ type FieldProps = {
 };
 
 /**
- * Label / hint / error wrapper — every field shares this anatomy.
+ * Label / hint / error wrapper - every field shares this anatomy.
  * Error id is `${id}-err`, hint id is `${id}-hint`; inputs must point
  * aria-describedby at them (see fieldDescribedBy).
  */
