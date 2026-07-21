@@ -229,9 +229,11 @@ export function BizcapLoanForm() {
       className="min-h-full bg-[#F9FAFB] px-4 pb-16 pt-10"
     >
       <div className="mx-auto w-full max-w-[600px]">
-        {logoUrl
-          ? <img src={logoUrl} alt="Logo" className="mx-auto mb-7 block max-h-12 w-auto max-w-[200px] object-contain" />
-          : <BizcapLogo className="mx-auto mb-7 block h-8 w-auto" />
+        {logoUrl === 'none'
+          ? null
+          : logoUrl
+            ? <img src={logoUrl} alt="Logo" className="mx-auto mb-7 block max-h-12 w-auto max-w-[200px] object-contain" />
+            : <BizcapLogo className="mx-auto mb-7 block h-8 w-auto" />
         }
 
         <TrustStrip />

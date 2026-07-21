@@ -14,9 +14,11 @@ const DEFAULT_COLOR = '#0C79C1';
 const DEFAULT_RADIUS = 8;
 
 type ContactPreference = 'client' | 'broker';
+type LogoMode = 'default' | 'custom' | 'none';
 
 function buildFormUrl(
   color: string,
+  logoMode: LogoMode,
   logoUrl: string,
   contact: ContactPreference,
   radius: number,
@@ -24,7 +26,8 @@ function buildFormUrl(
 ): string {
   const params = new URLSearchParams();
   if (color && color !== DEFAULT_COLOR) params.set('color', color);
-  if (logoUrl) params.set('logo', logoUrl);
+  if (logoMode === 'none') params.set('logo', 'none');
+  else if (logoMode === 'custom' && logoUrl) params.set('logo', logoUrl);
   if (contact === 'broker') params.set('contact', 'broker');
   if (radius !== DEFAULT_RADIUS) params.set('radius', String(radius));
   if (!showPoweredBy) params.set('poweredby', '0');
@@ -48,6 +51,7 @@ const STORAGE_KEY = 'bizcap-configurator-v1';
 type SavedConfig = {
   color?: string;
   logoUrl?: string;
+  logoMode?: LogoMode;
   previewDevice?: 'desktop' | 'mobile';
   contactPreference?: ContactPreference;
   radius?: number;
@@ -91,6 +95,9 @@ export function Configurator() {
   const [hexInput, setHexInput] = useState(savedColor);
   const [logoUrl, setLogoUrl] = useState(saved.logoUrl ?? ''); // validated - only URLs that actually loaded an image
   const [logoUrlInput, setLogoUrlInput] = useState(saved.logoUrl ?? '');
+  const [logoMode, setLogoMode] = useState<LogoMode>(
+    saved.logoMode ?? (saved.logoUrl ? 'custom' : 'default'),
+  );
   const [logoCheckStatus, setLogoCheckStatus] = useState<'idle' | 'checking' | 'error'>('idle');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -114,7 +121,7 @@ export function Configurator() {
 
   // Link + embed code update instantly; the iframe reload is debounced so
   // colour-picker dragging and typing don't cause a reload storm.
-  const formUrl = buildFormUrl(color, logoUrl, contactPreference, radius, showPoweredBy);
+  const formUrl = buildFormUrl(color, logoMode, logoUrl, contactPreference, radius, showPoweredBy);
   const previewUrl = useDebouncedValue(formUrl, 600);
 
   const lowContrast = contrastRatioWithWhite(color) < MIN_UI_CONTRAST;
@@ -129,12 +136,12 @@ export function Configurator() {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ color, logoUrl, previewDevice, contactPreference, radius, showPoweredBy }),
+        JSON.stringify({ color, logoUrl, logoMode, previewDevice, contactPreference, radius, showPoweredBy }),
       );
     } catch {
       // storage unavailable - skip persistence
     }
-  }, [color, logoUrl, previewDevice, contactPreference, radius]);
+  }, [color, logoUrl, logoMode, previewDevice, contactPreference, radius, showPoweredBy]);
 
   // Validate pasted logo URLs by actually loading the image once typing settles.
   // Only URLs that load become the logo, so links never carry a broken image.
@@ -230,6 +237,7 @@ export function Configurator() {
     setContactPreference('client');
     setRadius(DEFAULT_RADIUS);
     setShowPoweredBy(true);
+    setLogoMode('default');
     clearLogo();
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -394,8 +402,45 @@ export function Configurator() {
             {/* Logo */}
             <section className="rounded-2xl border border-[#E5E7EB] bg-white p-6">
               <StepHeading step={2} title="Add your logo" className="mb-1" />
-              <p className="mb-4 text-[13px] text-[#6B7280]">Upload a file or paste a URL. Leave blank to use the default Bizcap logo.</p>
+              <p className="mb-4 text-[13px] text-[#6B7280]">Choose what shows above the form.</p>
 
+              <div
+                className="mb-4 grid grid-cols-3 gap-1 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-1"
+                role="radiogroup"
+                aria-label="Logo option"
+              >
+                {([
+                  { v: 'default', label: 'Bizcap logo' },
+                  { v: 'custom', label: 'My logo' },
+                  { v: 'none', label: 'No logo' },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.v}
+                    type="button"
+                    role="radio"
+                    aria-checked={logoMode === opt.v}
+                    onClick={() => setLogoMode(opt.v)}
+                    className={`rounded-md px-2 py-1.5 text-[13px] font-medium transition-colors ${
+                      logoMode === opt.v
+                        ? 'bg-white text-[#111827] shadow-sm'
+                        : 'text-[#6B7280] hover:text-[#111827]'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {logoMode === 'none' ? (
+                <p className="text-[13px] text-[#6B7280]">No logo will appear above the form.</p>
+              ) : null}
+
+              {logoMode === 'default' ? (
+                <p className="text-[13px] text-[#6B7280]">The standard Bizcap logo will appear above the form.</p>
+              ) : null}
+
+              {logoMode === 'custom' ? (
+              <>
               {/* Upload zone */}
               <div
                 role="button"
@@ -492,6 +537,8 @@ export function Configurator() {
                   </button>
                 </div>
               )}
+              </>
+              ) : null}
 
               <label className="mt-4 flex cursor-pointer items-center justify-between gap-3 border-t border-[#F3F4F6] pt-4">
                 <span>
