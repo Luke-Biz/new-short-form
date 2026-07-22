@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { Loader } from 'lucide-react';
+import { Loader, CheckCircle2, ExternalLink } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BizcapLogo } from './BizcapLogo';
@@ -80,6 +80,8 @@ export function BizcapLoanForm() {
   const [announcement, setAnnouncement] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [bankStatementsUrl, setBankStatementsUrl] = useState('');
 
   const step1Form = useForm<Step1Data>({
     resolver: zodResolver(Step1Schema),
@@ -229,16 +231,16 @@ export function BizcapLoanForm() {
       ...partnerParams,
     });
 
-    if (result.isSuccess && result.redirectUrl) {
-      // Full navigation to the next step (bank statements / thank-you). In an
-      // iframe this navigates the frame; the standalone link and Webflow
-      // component navigate the whole page.
-      window.location.href = result.redirectUrl;
-      return; // keep the button in its loading state through the navigation
-    }
-
     setSubmitting(false);
-    if (!result.isSuccess) setSubmitError(true);
+    if (result.isSuccess) {
+      // Show an in-form thank-you screen. The bank-statements link isn't
+      // iframeable, so it's offered as a "new tab" button rather than a redirect.
+      setBankStatementsUrl(result.redirectUrl ?? '');
+      setSubmitted(true);
+      setAnnouncement('Your application has been submitted.');
+      return;
+    }
+    setSubmitError(true);
   };
 
   const handleBack = () => {
@@ -268,6 +270,42 @@ export function BizcapLoanForm() {
             : <BizcapLogo className="mx-auto mb-7 block h-8 w-auto" />
         }
 
+        {submitted ? (
+          <div
+            role="status"
+            className="rounded-[calc(var(--brand-radius)_+_6px)] border border-[#E5E7EB] bg-white px-6 py-10 text-center"
+          >
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--brand-light)]">
+              <CheckCircle2 className="h-8 w-8 text-[var(--brand-color)]" aria-hidden />
+            </div>
+            <h1 className="text-[20px] font-semibold text-[#111827]">
+              Thank you for your submission
+            </h1>
+            <p className="mx-auto mt-2 max-w-[420px] text-[14px] leading-[1.55] text-[#6B7280]">
+              We&apos;ve received your application and our team will be in touch shortly.
+            </p>
+            {bankStatementsUrl ? (
+              <>
+                <p className="mx-auto mt-4 max-w-[420px] text-[14px] leading-[1.55] text-[#6B7280]">
+                  To speed things up, securely provide your bank statements now.
+                </p>
+                <a
+                  href={bankStatementsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-[calc(var(--brand-radius)_+_2px)] bg-[var(--brand-color)] px-4 py-3 text-[15px] font-medium text-white transition-colors hover:bg-[var(--brand-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-color)]"
+                >
+                  Continue to bank statements
+                  <ExternalLink className="h-4 w-4" aria-hidden />
+                </a>
+                <p className="mt-2 text-[12px] text-[#9CA3AF]">
+                  Opens in a new tab and takes you to bizcap.com.au
+                </p>
+              </>
+            ) : null}
+          </div>
+        ) : (
+        <>
         <TrustStrip />
 
         <div className="mb-6">
@@ -363,6 +401,8 @@ export function BizcapLoanForm() {
             ) : null}
           </form>
         </div>
+        </>
+        )}
 
         {showPoweredBy ? (
           <p className="mt-5 text-center text-[12px] text-[#9CA3AF]">
